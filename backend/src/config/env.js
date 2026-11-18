@@ -39,7 +39,11 @@ const config = {
     user: env.DB_USER || env.TIDB_USER || 'root',
     password: env.DB_PASSWORD !== undefined ? env.DB_PASSWORD : (env.TIDB_PASSWORD || ''),
     database: env.DB_NAME || env.TIDB_NAME || 'ooty_originals',
-    ssl: env.DB_SSL === 'true' || env.TIDB_SSL === 'true' || String(env.DB_PORT || env.TIDB_PORT) === '4000' ? { minVersion: 'TLSv1.2', rejectUnauthorized: true } : undefined,
+    ssl:
+      (env.DB_HOST && !['127.0.0.1', 'localhost'].includes(env.DB_HOST)) &&
+      (env.DB_SSL === 'true' || env.TIDB_SSL === 'true' || String(env.DB_PORT || env.TIDB_PORT) === '4000')
+        ? { minVersion: 'TLSv1.2', rejectUnauthorized: true }
+        : undefined,
   },
   jwt: {
     secret: env.JWT_SECRET || 'dev-only-secret',
