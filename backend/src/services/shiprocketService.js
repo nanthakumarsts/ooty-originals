@@ -85,6 +85,65 @@ async function checkServiceability({ pickupPostcode = 641104, deliveryPostcode, 
   return request(`/courier/serviceability/?${qs.toString()}`, { method: 'GET' });
 }
 
+// In-memory cache for live rate checks to avoid latency & rate limiting
+const rateCache = new Map();
+const RATE_CACHE_TTL = 15 * 60 * 1000; // 15 mins cache
+
+/** Get live courier shipping rate and details for a pincode */
+async function getLiveShippingRate({ pickupPostcode = 641104, deliveryPostcode, weight = 0.5, cod = 0 }) {
+  if (!deliveryPostcode || !/^\d{6}$/.test(String(deliveryPostcode).trim())) {
+    return null;
+  }
+  const cleanPostcode = String(deliveryPostcode).trim();
+  const cleanWeight = Math.max(0.5, Math.round(Number(weight || 0.5) * 10) / 10);
+  const isCod = cod ? 1 : 0;
+  const cacheKey = `${pickupPostcode}:${cleanPostcode}:${cleanWeight}:${isCod}`;
+
+  const cached = rateCache.get(cacheKey);
+  if (cached && Date.now() - cached.timestamp < RATE_CACHE_TTL) {
+    return cached.data;
+  }
+
+  try {
+    const res = await checkServiceability({
+      pickupPostcode,
+      deliveryPostcode: cleanPostcode,
+      weight: cleanWeight,
+      cod: isCod,
+    });
+
+    const couriers = res.data?.available_courier_companies || [];
+    if (!couriers.length) {
+      const fallback = {
+        available: false,
+        message: res.message || `No courier service available for pincode ${cleanPostcode}`,
+        rate: null,
+      };
+      rateCache.set(cacheKey, { data: fallback, timestamp: Date.now() });
+      return fallback;
+    }
+
+    // Sort couriers by rate ascending to pick the most economical available courier
+    const sorted = [...couriers].sort((a, b) => Number(a.rate) - Number(b.rate));
+    const best = sorted[0];
+
+    const result = {
+      available: true,
+      rate: Math.round(Number(best.rate) * 100) / 100,
+      courierName: best.courier_name,
+      courierCompanyId: best.courier_company_id,
+      etd: best.etd || (best.estimated_delivery_days ? `${best.estimated_delivery_days} days` : null),
+      source: 'shiprocket',
+    };
+
+    rateCache.set(cacheKey, { data: result, timestamp: Date.now() });
+    return result;
+  } catch (err) {
+    console.error('Shiprocket rate calculation warning:', err.message);
+    return null;
+  }
+}
+
 /** Get registered pickup addresses from Shiprocket */
 async function getPickupLocations() {
   return request('/settings/company/pickup', { method: 'GET' });
@@ -120,6 +179,8 @@ async function createOrder(order, items = [], pickupLocation = null) {
     order_items: orderItems,
     payment_method: order.payment_method === 'cod' ? 'COD' : 'Prepaid',
     sub_total: Number(order.subtotal || order.total),
+    shipping_charges: Number(order.shipping_fee || 0),
+    total_discount: Number(order.discount || 0),
     length: 10,
     breadth: 10,
     height: 10,
@@ -207,6 +268,7 @@ module.exports = {
   getToken,
   request,
   checkServiceability,
+  getLiveShippingRate,
   getPickupLocations,
   createOrder,
   createReturnOrder,

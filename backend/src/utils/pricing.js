@@ -1,4 +1,6 @@
 const { round2 } = require('./helpers');
+const config = require('../config/env');
+const shiprocket = require('../services/shiprocketService');
 
 const MAX_QTY = 20;
 
@@ -42,10 +44,11 @@ async function applyCoupon(run, code, subtotal, userId = null) {
  * @param couponCode optional coupon
  * @param lock       when true, rows are locked (use inside a transaction while placing an order)
  * @param userId     optional customer id for per-user coupon limits
+ * @param shippingOptions optional { pincode, paymentMethod } for live Shiprocket courier rate calculation
  */
-async function buildQuote(run, rawItems, couponCode, lock = false, userId = null) {
+async function buildQuote(run, rawItems, couponCode, lock = false, userId = null, shippingOptions = {}) {
   const wanted = (rawItems || []).filter((i) => i && Number(i.productId) > 0);
-  const empty = { items: [], subtotal: 0, discount: 0, shipping: 0, total: 0, coupon: null, couponError: null, hasIssues: false, itemCount: 0 };
+  const empty = { items: [], subtotal: 0, discount: 0, shipping: 0, shippingDetails: null, total: 0, coupon: null, couponError: null, hasIssues: false, itemCount: 0 };
   if (!wanted.length) return empty;
 
   const ids = [...new Set(wanted.map((i) => Number(i.productId)))];
@@ -113,13 +116,56 @@ async function buildQuote(run, rawItems, couponCode, lock = false, userId = null
   const fee = settings.shipping_fee || 0;
   const freeFrom = settings.free_shipping_min || 0;
   const afterDiscount = subtotal - discount;
-  const shipping = !items.length || fee <= 0 || (freeFrom > 0 && afterDiscount >= freeFrom) ? 0 : fee;
+
+  let shipping = 0;
+  let shippingDetails = null;
+  const { pincode = null, paymentMethod = 'online' } = (typeof shippingOptions === 'object' && shippingOptions !== null) ? shippingOptions : {};
+
+  if (pincode && /^\d{6}$/.test(String(pincode).trim())) {
+    const totalUnits = items.reduce((sum, i) => sum + (i.quantity || 1), 0);
+    const estWeight = Math.max(0.5, Math.round(totalUnits * 0.3 * 10) / 10);
+    const isCod = paymentMethod === 'cod';
+
+    const srRate = await shiprocket.getLiveShippingRate({
+      pickupPostcode: 641104,
+      deliveryPostcode: pincode,
+      weight: estWeight,
+      cod: isCod ? 1 : 0,
+    });
+
+    if (srRate && srRate.available && srRate.rate != null) {
+      if (freeFrom > 0 && afterDiscount >= freeFrom) {
+        shipping = 0;
+        shippingDetails = {
+          ...srRate,
+          freeShippingApplied: true,
+          originalRate: srRate.rate,
+        };
+      } else {
+        shipping = srRate.rate;
+        shippingDetails = srRate;
+      }
+    } else if (srRate && !srRate.available) {
+      shipping = fee;
+      shippingDetails = {
+        available: false,
+        message: srRate.message,
+        source: 'fallback',
+      };
+    } else {
+      shipping = !items.length || fee <= 0 || (freeFrom > 0 && afterDiscount >= freeFrom) ? 0 : fee;
+      shippingDetails = null;
+    }
+  } else {
+    shipping = !items.length || fee <= 0 || (freeFrom > 0 && afterDiscount >= freeFrom) ? 0 : fee;
+  }
 
   return {
     items,
     subtotal,
     discount,
     shipping,
+    shippingDetails,
     total: round2(afterDiscount + shipping),
     coupon,
     couponError: error,
