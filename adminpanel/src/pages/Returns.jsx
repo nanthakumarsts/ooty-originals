@@ -364,7 +364,7 @@ export default function Returns() {
                   loading={actionBusy === 'approve'}
                   onClick={handleApprove}
                 >
-                  Approve Return &amp; Refund ({inr(activeItem.total)})
+                  Approve Return &amp; Refund ({inr(Math.max(0, Number(activeItem.total) - Number(activeItem.shipping_fee || 0)))})
                 </Button>
               </div>
             </div>

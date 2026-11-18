@@ -458,7 +458,7 @@ module.exports = {
       orderId: order.order_number,
       content: `
         <div style="background-color:#143122;border:1px solid #235d3d;border-radius:14px;padding:18px;margin-top:14px;">
-          <h3 style="margin:0 0 6px;color:#4ade80;font-size:15px;font-weight:700;">✓ Refund Initiated: ${inr(order.total)}</h3>
+          <h3 style="margin:0 0 6px;color:#4ade80;font-size:15px;font-weight:700;">✓ Refund Initiated: ${inr(returnReq?.refund_amount || order.total)}</h3>
           <p style="margin:0;font-size:13px;color:#cbd5e1;line-height:1.5;">
             ${refund?.refundId ? `Razorpay Refund ID: <strong>${esc(refund.refundId)}</strong><br>` : ''}
             The refund has been dispatched to your original payment method and will reflect in your bank account in 3–5 business days.

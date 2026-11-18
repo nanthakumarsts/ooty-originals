@@ -190,11 +190,15 @@ async function adminApproveReturn(req, res) {
     throw new HttpError(400, 'No pending return request found for this order');
   }
 
-  // 1. Process Refund
+  // 1. Process Refund (deducting shipping fee as shipping charges are non-refundable)
   let refundResult = null;
   const isPaidOnline = order.payment_method === 'online' && order.payment_status === 'paid';
+  const defaultRefundAmount = Math.max(0, Math.round((Number(order.total) - Number(order.shipping_fee || 0)) * 100) / 100);
+  const refundAmount = req.body.refundAmount != null && !Number.isNaN(Number(req.body.refundAmount))
+    ? Number(req.body.refundAmount)
+    : defaultRefundAmount;
 
-  if (isPaidOnline) {
+  if (isPaidOnline && refundAmount > 0) {
     const [paidPayment] = await q(
       "SELECT gateway_payment_id, amount FROM payments WHERE order_id = ? AND status = 'paid' ORDER BY id DESC LIMIT 1",
       [order.id]
@@ -203,7 +207,7 @@ async function adminApproveReturn(req, res) {
     if (paidPayment?.gateway_payment_id) {
       refundResult = await orders.refundPayment(
         paidPayment.gateway_payment_id,
-        order.total,
+        refundAmount,
         { reason: returnReq.reason, order_number: order.order_number }
       );
     }
@@ -234,7 +238,7 @@ async function adminApproveReturn(req, res) {
         WHERE id = ?`,
       [
         adminNote.trim() || 'Return and refund approved by store',
-        order.total,
+        refundAmount,
         refundResult?.refundId || null,
         srReturnId,
         srShipmentId,

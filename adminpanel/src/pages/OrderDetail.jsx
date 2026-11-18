@@ -374,12 +374,24 @@ export default function OrderDetail() {
                   />
 
                   <div className="mt-4 flex flex-wrap gap-3">
-                    <Button
-                      onClick={() => setConfirmApproveModal(true)}
-                      className="bg-brand-600 hover:bg-brand-700 text-white"
-                    >
-                      <CircleCheck className="size-4" /> Approve Return &amp; Refund ({inr(order.total)})
-                    </Button>
+                    {(() => {
+                      const eligibleRefund = Math.max(0, Math.round((Number(order.total) - Number(order.shipping_fee || 0)) * 100) / 100);
+                      return (
+                        <>
+                          <Button
+                            onClick={() => setConfirmApproveModal(true)}
+                            className="bg-brand-600 hover:bg-brand-700 text-white"
+                          >
+                            <CircleCheck className="size-4" /> Approve Return &amp; Refund ({inr(eligibleRefund)})
+                          </Button>
+                          {Number(order.shipping_fee) > 0 && (
+                            <p className="w-full text-[11px] text-ink-500">
+                              ℹ️ Shipping charge of {inr(order.shipping_fee)} is deducted from refund ({inr(order.total)} − {inr(order.shipping_fee)} = {inr(eligibleRefund)}).
+                            </p>
+                          )}
+                        </>
+                      );
+                    })()}
                     <Button
                       variant="outline"
                       onClick={() => setRejectModal(true)}
@@ -595,17 +607,17 @@ export default function OrderDetail() {
         onConfirm={handleApproveReturn}
         busy={returnActionBusy === 'approve'}
         title="Approve Return & Process Refund?"
-        confirmLabel={`Approve & Refund ${inr(order.total)}`}
+        confirmLabel={`Approve & Refund ${inr(Math.max(0, Number(order.total) - Number(order.shipping_fee || 0)))}`}
       >
         <div className="space-y-2 text-sm text-ink-600">
           <p>This action will automatically execute the following:</p>
           <ul className="list-disc pl-5 space-y-1 text-xs">
             {order.payment_method === 'online' && order.payment_status === 'paid' ? (
               <li className="font-medium text-emerald-800">
-                <strong>Razorpay Refund:</strong> Instantly initiate full refund of {inr(order.total)} back to the customer's original payment method.
+                <strong>Razorpay Auto-Refund:</strong> Instantly transfer {inr(Math.max(0, Number(order.total) - Number(order.shipping_fee || 0)))} (excluding {inr(order.shipping_fee)} shipping charge) back to customer's original account/UPI.
               </li>
             ) : (
-              <li><strong>COD Refund:</strong> Mark order payment as Refunded (arrange cash/UPI refund with customer).</li>
+              <li><strong>COD Refund:</strong> Mark order payment as Refunded ({inr(Math.max(0, Number(order.total) - Number(order.shipping_fee || 0)))}).</li>
             )}
             <li><strong>Shiprocket Reverse Pickup:</strong> Automatically create a Return Shipment for courier to pick up goods from customer.</li>
             <li><strong>Inventory:</strong> Return {order.items.length} items back to product inventory stock.</li>
