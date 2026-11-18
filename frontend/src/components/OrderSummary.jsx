@@ -17,14 +17,7 @@ export default function OrderSummary({ subtotal, discount, couponCode, shipping,
         </div>
       )}
       <div className={row}>
-        <dt className="text-ink-500">
-          <span>Delivery</span>
-          {shippingDetails?.courierName && (
-            <span className="block text-xs font-normal text-brand-700">
-              via {shippingDetails.courierName}{shippingDetails.etd ? ` · ${shippingDetails.etd}` : ''}
-            </span>
-          )}
-        </dt>
+        <dt className="text-ink-500">Delivery charge</dt>
         <dd className={cx('font-medium tabular-nums', Number(shipping) === 0 && 'text-brand-600')}>{Number(shipping) > 0 ? inr(shipping) : 'Free'}</dd>
       </div>
       <div className="flex items-baseline justify-between gap-4 border-t border-sand-200 pt-4">

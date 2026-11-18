@@ -102,10 +102,9 @@ export default function Cart() {
                   Check
                 </button>
               </form>
-              {quote?.shippingDetails?.courierName && (
-                <div className="mt-2.5 rounded-lg bg-white/80 p-2 text-xs text-brand-900 border border-brand-200/60">
-                  <span className="font-semibold">{inr(quote.shipping)}</span> via {quote.shippingDetails.courierName}
-                  {quote.shippingDetails.etd && <span className="block text-ink-500 text-[11px] mt-0.5">Est. {quote.shippingDetails.etd}</span>}
+              {quote?.shippingDetails?.rate != null && (
+                <div className="mt-2.5 rounded-lg bg-white/80 p-2 text-xs text-brand-900 border border-brand-200/60 font-medium">
+                  Delivery charge: <strong>{inr(quote.shipping)}</strong>
                 </div>
               )}
             </div>
