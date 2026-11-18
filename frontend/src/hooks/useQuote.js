@@ -7,12 +7,14 @@ import { useShop } from '../context/ShopContext';
  * By default it prices the cart; pass `items` to price something else, such as a
  * single "Buy it now" item. Re-runs whenever the items or the coupon change.
  */
-export default function useQuote(items) {
+export default function useQuote(items, options = {}) {
   const { cart, coupon, syncCart } = useShop();
   const lines = items || cart;
   const [quote, setQuote] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+
+  const { pincode = null, addressId = null, paymentMethod = 'online' } = options || {};
 
   useEffect(() => {
     if (!lines.length) {
@@ -24,7 +26,13 @@ export default function useQuote(items) {
     setLoading(true);
     const timer = setTimeout(() => {
       api
-        .post('/cart/quote', { items: lines, couponCode: coupon || null })
+        .post('/cart/quote', {
+          items: lines,
+          couponCode: coupon || null,
+          pincode: pincode || undefined,
+          addressId: addressId || undefined,
+          paymentMethod,
+        })
         .then((d) => {
           if (!active) return;
           setQuote(d);
@@ -38,7 +46,7 @@ export default function useQuote(items) {
       active = false;
       clearTimeout(timer);
     };
-  }, [lines, items, coupon, syncCart]);
+  }, [lines, items, coupon, pincode, addressId, paymentMethod, syncCart]);
 
   return { quote, loading, error };
 }

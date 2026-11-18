@@ -31,7 +31,10 @@ async function place(req, res) {
   }
 
   const orderId = await tx(async (run) => {
-    const quote = await buildQuote(run, data.items, data.couponCode, true, user.id);
+    const quote = await buildQuote(run, data.items, data.couponCode, true, user.id, {
+      pincode: address.pincode,
+      paymentMethod: data.paymentMethod,
+    });
     if (!quote.items.length) throw new HttpError(409, 'The items in your cart are no longer available');
     if (quote.hasIssues) {
       const bad = quote.items.find((i) => i.issue);

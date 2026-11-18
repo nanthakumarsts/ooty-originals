@@ -16,12 +16,23 @@ const itemsSchema = z
 const quoteSchema = z.object({
   items: itemsSchema,
   couponCode: z.string().trim().max(40).nullable().optional(),
+  pincode: z.string().trim().max(10).nullable().optional(),
+  addressId: z.coerce.number().int().positive().nullable().optional(),
+  paymentMethod: z.enum(['online', 'cod']).optional().default('online'),
 });
 
 /** Prices a cart with live data. The cart itself lives in the browser. */
 async function quote(req, res) {
   const data = validate(quoteSchema, req.body);
-  res.json(await buildQuote(q, data.items, data.couponCode, false, req.user?.id || null));
+  let pincode = data.pincode ? String(data.pincode).trim() : null;
+  if (!pincode && data.addressId && req.user?.id) {
+    const [addr] = await q('SELECT pincode FROM addresses WHERE id = ? AND user_id = ?', [data.addressId, req.user.id]);
+    if (addr?.pincode) pincode = String(addr.pincode).trim();
+  }
+  res.json(await buildQuote(q, data.items, data.couponCode, false, req.user?.id || null, {
+    pincode,
+    paymentMethod: data.paymentMethod,
+  }));
 }
 
 /** Offers a shopper can apply right now. */
