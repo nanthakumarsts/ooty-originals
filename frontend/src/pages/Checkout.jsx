@@ -91,13 +91,19 @@ export default function Checkout() {
   const [buyItem] = useState(() => (buyMode ? getBuyNow() : null));
   const buyItems = useMemo(() => (buyItem ? [buyItem] : null), [buyItem]);
   const orderItems = buyItems || cart;
-  const { quote, loading } = useQuote(buyItems);
 
   const [addresses, setAddresses] = useState(null);
   const [addressId, setAddressId] = useState(null);
   const [addressForm, setAddressForm] = useState(null); // null = closed, {} = new, address = edit
   const [addressError, setAddressError] = useState('');
   const [method, setMethod] = useState('online');
+
+  const selectedAddress = useMemo(() => addresses?.find((a) => a.id === addressId), [addresses, addressId]);
+  const { quote, loading } = useQuote(buyItems, {
+    pincode: selectedAddress?.pincode,
+    addressId,
+    paymentMethod: method,
+  });
   const [gateway, setGateway] = useState('');
   const [notes, setNotes] = useState('');
   const [stage, setStage] = useState(''); // '' | 'placing' | 'paying'
@@ -336,13 +342,39 @@ export default function Checkout() {
           <div className="mt-5 border-t border-sand-200 pt-5">
             <CouponBox quote={quote} compact />
           </div>
-          <OrderSummary className="mt-5 border-t border-sand-200 pt-5" subtotal={quote.subtotal} discount={quote.discount} couponCode={quote.coupon?.code} shipping={quote.shipping} total={quote.total} />
+          <OrderSummary
+            className="mt-5 border-t border-sand-200 pt-5"
+            subtotal={quote.subtotal}
+            discount={quote.discount}
+            couponCode={quote.coupon?.code}
+            shipping={quote.shipping}
+            total={quote.total}
+            shippingDetails={quote.shippingDetails}
+          />
 
           {selected && (
-            <p className="mt-5 flex items-start gap-2.5 rounded-xl bg-sand-100 px-3.5 py-3 text-sm leading-snug text-ink-700">
-              <MapPin className="mt-0.5 size-4 shrink-0 text-brand-600" aria-hidden />
-              <span>Delivering to <strong className="font-semibold">{selected.full_name}</strong>, {selected.city} – {selected.pincode}</span>
-            </p>
+            <div className="mt-5 space-y-2.5">
+              <p className="flex items-start gap-2.5 rounded-xl bg-sand-100 px-3.5 py-3 text-sm leading-snug text-ink-700">
+                <MapPin className="mt-0.5 size-4 shrink-0 text-brand-600" aria-hidden />
+                <span>Delivering to <strong className="font-semibold">{selected.full_name}</strong>, {selected.city} – {selected.pincode}</span>
+              </p>
+              {quote.shippingDetails?.courierName && (
+                <div className="flex items-center justify-between rounded-xl bg-brand-50/90 border border-brand-200/80 px-3.5 py-2.5 text-xs text-brand-900">
+                  <div className="flex items-center gap-2">
+                    <span className="relative flex size-2">
+                      <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-brand-400 opacity-75"></span>
+                      <span className="relative inline-flex size-2 rounded-full bg-brand-600"></span>
+                    </span>
+                    <span>
+                      Shiprocket Live: <strong>{inr(quote.shipping)}</strong> ({quote.shippingDetails.courierName})
+                    </span>
+                  </div>
+                  {quote.shippingDetails.etd && (
+                    <span className="text-brand-700 font-medium">Est. {quote.shippingDetails.etd}</span>
+                  )}
+                </div>
+              )}
+            </div>
           )}
 
           <Button size="lg" className="mt-5 w-full" onClick={placeOrder} loading={stage === 'placing'} disabled={busy || quote.hasIssues}>
