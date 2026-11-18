@@ -34,12 +34,12 @@ const config = {
   clientUrl: (env.CLIENT_URL || 'http://localhost:5173').trim().replace(/\/+$/, ''),
   adminUrl: (env.ADMIN_URL || 'http://localhost:5174').trim().replace(/\/+$/, ''),
   db: {
-    host: env.DB_HOST || '127.0.0.1',
-    port: Number(env.DB_PORT) || 3306,
-    user: env.DB_USER || 'root',
-    password: env.DB_PASSWORD || '',
-    database: env.DB_NAME || 'ooty_originals',
-    ssl: env.DB_SSL === 'true' || String(env.DB_PORT) === '4000' ? { minVersion: 'TLSv1.2', rejectUnauthorized: true } : undefined,
+    host: env.DB_HOST || env.TIDB_HOST || '127.0.0.1',
+    port: Number(env.DB_PORT || env.TIDB_PORT) || 3306,
+    user: env.DB_USER || env.TIDB_USER || 'root',
+    password: env.DB_PASSWORD !== undefined ? env.DB_PASSWORD : (env.TIDB_PASSWORD || ''),
+    database: env.DB_NAME || env.TIDB_NAME || 'ooty_originals',
+    ssl: env.DB_SSL === 'true' || env.TIDB_SSL === 'true' || String(env.DB_PORT || env.TIDB_PORT) === '4000' ? { minVersion: 'TLSv1.2', rejectUnauthorized: true } : undefined,
   },
   jwt: {
     secret: env.JWT_SECRET || 'dev-only-secret',
