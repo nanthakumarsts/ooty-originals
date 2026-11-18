@@ -27,7 +27,7 @@ export default function About() {
         <img src="/images/hero-estate.webp" alt="" className="absolute inset-0 -z-10 size-full animate-hero-zoom object-cover object-[center_45%]" />
         <div className="absolute inset-0 -z-10 bg-brand-900/65" />
         <div className="container-page py-24 text-center text-white sm:py-32">
-          <p className="mb-4 animate-rise text-xs font-semibold tracking-[0.2em] text-brand-200 uppercase">About Ooty Originals</p>
+          <p className="mb-4 animate-rise text-xs font-semibold tracking-[0.2em] text-brand-200 uppercase">About Sannara</p>
           <TextReveal as="h1" immediate delay={150} text={page?.title || 'Our Story'} className="mx-auto max-w-3xl text-4xl leading-tight font-medium text-white sm:text-6xl" />
           <p className="mx-auto mt-5 max-w-xl animate-rise text-lg text-white/85" style={{ animationDelay: '240ms' }}>{settings.about_tagline}</p>
         </div>

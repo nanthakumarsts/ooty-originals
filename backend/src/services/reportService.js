@@ -214,13 +214,13 @@ const GREEN = 'FF125F2E';
 
 async function toExcel(report) {
   const workbook = new ExcelJS.Workbook();
-  workbook.creator = 'Ooty Originals';
+  workbook.creator = 'Sannara';
   workbook.created = report.generatedAt;
   const sheet = workbook.addWorksheet(report.title.slice(0, 31), { views: [{ state: 'frozen', ySplit: 0 }] });
   const lastColumn = report.columns.length;
 
   sheet.mergeCells(1, 1, 1, lastColumn);
-  Object.assign(sheet.getCell(1, 1), { value: `Ooty Originals — ${report.title}` });
+  Object.assign(sheet.getCell(1, 1), { value: `Sannara — ${report.title}` });
   sheet.getCell(1, 1).font = { size: 16, bold: true, color: { argb: GREEN } };
   sheet.getRow(1).height = 26;
   sheet.mergeCells(2, 1, 2, lastColumn);
@@ -281,7 +281,7 @@ const pdfValue = (value, type) => {
 
 function toPdf(report) {
   return new Promise((resolve, reject) => {
-    const doc = new PDFDocument({ size: 'A4', layout: 'landscape', margin: 36, bufferPages: true, info: { Title: `Ooty Originals - ${report.title}`, Author: 'Ooty Originals' } });
+    const doc = new PDFDocument({ size: 'A4', layout: 'landscape', margin: 36, bufferPages: true, info: { Title: `Sannara - ${report.title}`, Author: 'Sannara' } });
     const chunks = [];
     doc.on('data', (c) => chunks.push(c));
     doc.on('end', () => resolve(Buffer.concat(chunks)));
@@ -297,7 +297,7 @@ function toPdf(report) {
     const numeric = (c) => c.type === 'money' || c.type === 'int';
 
     // Title block
-    doc.font('Helvetica-Bold').fontSize(18).fillColor('#125F2E').text('Ooty Originals', left, 34);
+    doc.font('Helvetica-Bold').fontSize(18).fillColor('#125F2E').text('Sannara', left, 34);
     doc.font('Helvetica-Bold').fontSize(13).fillColor('#1A3338').text(report.title, left, 58);
     doc.font('Helvetica').fontSize(9.5).fillColor('#5A6B6F').text(`${pdfValue(report.periodLabel)}   |   Generated ${report.generatedAt.toLocaleString('en-IN', { dateStyle: 'medium', timeStyle: 'short' })}`, left, 76);
 

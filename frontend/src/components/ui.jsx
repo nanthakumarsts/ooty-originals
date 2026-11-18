@@ -9,7 +9,7 @@ export const cx = (...classes) => classes.filter(Boolean).join(' ');
 /** Sets the browser tab title for the current page. */
 export function usePageTitle(title) {
   useEffect(() => {
-    document.title = title ? `${title} · Ooty Originals` : 'Ooty Originals — Authentic Nilgiri Products';
+    document.title = title ? `${title} · Sannara` : 'Sannara — Authentic Nilgiri Products';
   }, [title]);
 }
 

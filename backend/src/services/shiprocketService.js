@@ -244,7 +244,7 @@ async function createReturnOrder(order, items = [], warehouseLocation = null) {
     pickup_phone: String(order.ship_phone || ''),
 
     // Delivery back to Store / Warehouse
-    shipping_customer_name: 'Ooty Originals Warehouse',
+    shipping_customer_name: 'Sannara Warehouse',
     shipping_last_name: '',
     shipping_address: 'Nilgiri Mountain Store, 2/306 Blue Hills Avenue',
     shipping_address_2: 'Mettupalayam Road',

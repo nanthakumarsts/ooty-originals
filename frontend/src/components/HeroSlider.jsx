@@ -66,7 +66,7 @@ export default function HeroSlider({ slides }) {
         <img
           key={`${item.image}-${itemIndex}`}
           src={item.image ? img(item.image) : DEFAULT_PHOTO}
-          alt={item.title || 'Ooty Originals'}
+          alt={item.title || 'Sannara'}
           loading={itemIndex === 0 ? 'eager' : 'lazy'}
           fetchPriority={itemIndex === 0 ? 'high' : undefined}
           className={cx(

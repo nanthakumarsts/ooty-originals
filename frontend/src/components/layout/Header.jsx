@@ -254,8 +254,8 @@ export default function Header() {
             <MenuIcon open={menuOpen} />
           </button>
 
-          <Link to="/" aria-label="Ooty Originals — home" className="shrink-0">
-            <img src="/images/logo.png" alt="Ooty Originals" width="430" height="256" className="h-11 w-auto lg:h-[52px]" />
+          <Link to="/" aria-label="Sannara — home" className="shrink-0">
+            <img src="/images/logo.png" alt="Sannara" width="430" height="256" className="h-11 w-auto lg:h-[52px]" />
           </Link>
 
           <nav aria-label="Main" className="ml-10 hidden h-full items-stretch gap-8 lg:flex">
@@ -397,7 +397,7 @@ export default function Header() {
         <div className={cx('absolute inset-y-0 left-0 flex w-[86%] max-w-sm flex-col bg-cream shadow-lift transition-transform ease-soft will-change-transform', menuOpen ? 'translate-x-0 duration-[400ms]' : '-translate-x-full duration-300')}>
           <div className="flex h-[72px] shrink-0 items-center justify-between border-b border-sand-200 px-5">
             <Link to="/" onClick={() => setMenuOpen(false)} className="inline-block">
-              <img src="/images/logo.png" alt="Ooty Originals" className="h-10 w-auto" />
+              <img src="/images/logo.png" alt="Sannara" className="h-10 w-auto" />
             </Link>
             <button type="button" className="icon-btn -mr-2" onClick={() => setMenuOpen(false)} aria-label="Close menu">
               <MenuIcon open={menuOpen} />

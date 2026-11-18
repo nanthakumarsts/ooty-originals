@@ -51,7 +51,7 @@ export default function MobileBar() {
         </button>
         {settings.contact_whatsapp && (
           <a
-            href={`https://wa.me/${settings.contact_whatsapp.replace(/\D/g, '')}?text=${encodeURIComponent('Hi Ooty Originals, I need some help.')}`}
+            href={`https://wa.me/${settings.contact_whatsapp.replace(/\D/g, '')}?text=${encodeURIComponent('Hi Sannara, I need some help.')}`}
             target="_blank"
             rel="noopener noreferrer"
             aria-label="Chat with us on WhatsApp"

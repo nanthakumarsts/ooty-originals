@@ -61,7 +61,7 @@ export default function Footer() {
     <footer className="mt-24 bg-brand-900 text-white">
       <div className="container-page grid gap-12 py-16 lg:grid-cols-[1.3fr_2fr] lg:gap-20">
         <div>
-          <img src="/images/logo-white.png" alt="Ooty Originals" width="430" height="256" className="h-14 w-auto" />
+          <img src="/images/logo-white.png" alt="Sannara" width="430" height="256" className="h-14 w-auto" />
           <p className="mt-5 max-w-sm text-[15px] leading-relaxed text-white/75">{settings.footer_note}</p>
           {SHOW_NEWSLETTER && (
             <>
@@ -122,7 +122,7 @@ export default function Footer() {
 
       <div className="border-t border-white/10">
         <div className="container-page flex flex-col items-center justify-between gap-2 py-6 text-sm text-white/60 sm:flex-row">
-          <p>© {new Date().getFullYear()} Ooty Originals · Herdsmen Business Ventures Pvt. Ltd.</p>
+          <p>© {new Date().getFullYear()} Sannara · Herdsmen Business Ventures Pvt. Ltd.</p>
           <p>
             Developed by{' '}
             <a

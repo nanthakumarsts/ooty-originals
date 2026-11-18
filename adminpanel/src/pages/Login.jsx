@@ -11,7 +11,7 @@ export function AuthFrame({ title, subtitle, children }) {
         <img src="/images/hero-estate.webp" alt="" className="absolute inset-0 size-full object-cover object-[center_60%] opacity-70" />
         <div className="absolute inset-0 bg-gradient-to-t from-brand-900 via-brand-900/40 to-brand-900/30" />
         <div className="relative flex h-full flex-col justify-between p-12 text-white">
-          <img src="/images/logo-white.png" alt="Ooty Originals" className="h-14 w-auto self-start" />
+          <img src="/images/logo-white.png" alt="Sannara" className="h-14 w-auto self-start" />
           <div>
             <p className="font-display text-4xl leading-tight">Run the store.<br />Keep the hills moving.</p>
             <p className="mt-4 max-w-sm text-white/75">Orders, products, customers and website content — all in one place.</p>
@@ -20,7 +20,7 @@ export function AuthFrame({ title, subtitle, children }) {
       </div>
       <div className="flex items-center justify-center bg-white px-5 py-12">
         <div className="w-full max-w-sm">
-          <img src="/images/logo.png" alt="Ooty Originals" className="mb-8 h-12 w-auto lg:hidden" />
+          <img src="/images/logo.png" alt="Sannara" className="mb-8 h-12 w-auto lg:hidden" />
           <p className="mb-2 flex items-center gap-2 text-xs font-semibold tracking-[0.16em] text-brand-600 uppercase">
             <ShieldCheck className="size-4" aria-hidden /> Admin panel
           </p>

@@ -47,7 +47,7 @@ export default function InvoiceModal({ order, open, onClose }) {
           <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-6 border-b border-sand-200 pb-8">
             <div>
               <div className="font-serif text-2xl font-bold tracking-tight text-brand-700">
-                Ooty <span className="text-ink-900 font-normal">Originals</span>
+                Sannara
               </div>
               <p className="text-xs text-ink-500 mt-0.5 italic">Authentic Nilgiri Heritage Products</p>
               <p className="text-xs text-ink-600 mt-3 leading-relaxed">
@@ -176,7 +176,7 @@ export default function InvoiceModal({ order, open, onClose }) {
 
           {/* Footer note */}
           <div className="mt-10 border-t border-dashed border-sand-300 pt-4 text-center text-xs text-ink-400">
-            Thank you for shopping with Ooty Originals! · This is a computer-generated invoice and requires no signature.
+            Thank you for shopping with Sannara! · This is a computer-generated invoice and requires no signature.
           </div>
         </div>
       </div>

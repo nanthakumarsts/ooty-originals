@@ -3,7 +3,7 @@
  * (Content → Site settings / Pages), so treat it as a starting point.
  */
 
-const ADDRESS = 'Ooty Originals, Herdsmen Business Ventures Pvt. Ltd., 10, YBA Building, Church Hill Road, Ooty, The Nilgiris, Tamil Nadu – 643001';
+const ADDRESS = 'Sannara, Herdsmen Business Ventures Pvt. Ltd., 10, YBA Building, Church Hill Road, Ooty, The Nilgiris, Tamil Nadu – 643001';
 
 const faqs = [
   { q: 'Where do you source your products from?', a: 'Directly from local farmers and producers in the Nilgiri Hills. Our sourcing supports the livelihoods of small growers and makers, and every product reflects the craft of the local community.' },
@@ -46,7 +46,7 @@ const settings = {
     { title: 'Secure payments', text: 'UPI, cards and net banking' },
   ]),
   story_title: 'Curated by people who call these hills home',
-  story_text: 'We are a team of native people who came together to bring authentic, high-quality products from the Nilgiris to homes across the country.\n\nEvery product carries the soul of these hills — grown with integrity, packed with honesty and delivered with pride. Ooty Originals was never just a business. It is a promise to protect and share the heritage of the Nilgiris.',
+  story_text: 'We are a team of native people who came together to bring authentic, high-quality products from the Nilgiris to homes across the country.\n\nEvery product carries the soul of these hills — grown with integrity, packed with honesty and delivered with pride. Sannara was never just a business. It is a promise to protect and share the heritage of the Nilgiris.',
   story_stat: '1000s',
   story_stat_text: 'of small farmers and producers supported across the hills',
 
@@ -79,15 +79,15 @@ const pages = [
 <p>We understand our duty towards our native place. We intend to do business responsibly and to keep quality intact, always.</p>
 <h2>A promise, not just a business</h2>
 <p>The Nilgiris gave us something the world deserves to experience. Every product we bring to you carries the soul of these magnificent hills — grown with integrity, packed with honesty and delivered with immense pride.</p>
-<p>Ooty Originals was never just a business. It was a promise to protect and share the authentic heritage of the Nilgiris with every Indian home.</p>
+<p>Sannara was never just a business. It was a promise to protect and share the authentic heritage of the Nilgiris with every Indian home.</p>
 <h2>Founder’s message</h2>
-<p>We at Ooty Originals have grown steadily since our inception and remain committed to creating an enriching, healthy way of living for our customers while protecting the quality and authenticity that define who we are.</p>
-<p>With Ooty Originals you are not just buying products — you are supporting local farmers and producers while embracing a healthier lifestyle.</p>`,
+<p>We at Sannara have grown steadily since our inception and remain committed to creating an enriching, healthy way of living for our customers while protecting the quality and authenticity that define who we are.</p>
+<p>With Sannara you are not just buying products — you are supporting local farmers and producers while embracing a healthier lifestyle.</p>`,
   },
   {
     slug: 'privacy-policy',
     title: 'Privacy Policy',
-    content: `<p>This policy explains what information Ooty Originals (Herdsmen Business Ventures Pvt. Ltd.) collects when you use our website, and how we use and protect it.</p>
+    content: `<p>This policy explains what information Sannara (Herdsmen Business Ventures Pvt. Ltd.) collects when you use our website, and how we use and protect it.</p>
 <h2>Information we collect</h2>
 <ul>
 <li><strong>Account details</strong> — your name, email address, mobile number and password (stored only in encrypted form).</li>
@@ -117,7 +117,7 @@ const pages = [
   {
     slug: 'terms-and-conditions',
     title: 'Terms & Conditions',
-    content: `<p>These terms apply to your use of the Ooty Originals website and to every order placed through it. By using the website you agree to them.</p>
+    content: `<p>These terms apply to your use of the Sannara website and to every order placed through it. By using the website you agree to them.</p>
 <h2>Products and pricing</h2>
 <ul>
 <li>All prices are in Indian Rupees and include GST.</li>

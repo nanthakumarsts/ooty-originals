@@ -39,7 +39,7 @@ function luxuryLayout({ title, subtitle, badgeText, badgeTone = 'green', orderId
           <tr>
             <td align="center" style="padding:28px 24px 20px;background:#0c1410;border-bottom:1px solid ${BORDER};">
               <div style="display:inline-block;padding:4px 12px;background:#16241d;border:1px solid #2a4134;border-radius:8px;">
-                <span style="font-family:Georgia,serif;font-size:18px;font-weight:700;letter-spacing:2px;color:${TEXT_WHITE};text-transform:uppercase;">🌿 OOTY ORIGINALS</span>
+                <span style="font-family:Georgia,serif;font-size:18px;font-weight:700;letter-spacing:2px;color:${TEXT_WHITE};text-transform:uppercase;">🌿 SANNARA</span>
               </div>
               <div style="font-size:10px;font-weight:700;letter-spacing:3px;color:#789283;margin-top:6px;text-transform:uppercase;">
                 HILL CONCIERGE · NILGIRIS
@@ -73,7 +73,7 @@ function luxuryLayout({ title, subtitle, badgeText, badgeTone = 'green', orderId
           <!-- Footer -->
           <tr>
             <td align="center" style="padding:24px;background-color:#0c1410;border-top:1px solid ${BORDER};font-size:12px;line-height:1.7;color:#64748b;">
-              <p style="margin:0;color:#64748b;">© 2026 Ooty Originals · Authentic Nilgiri Mountain Goods. All rights reserved.</p>
+              <p style="margin:0;color:#64748b;">© 2026 Sannara · Authentic Nilgiri Mountain Goods. All rights reserved.</p>
             </td>
           </tr>
 
@@ -337,9 +337,9 @@ module.exports = {
   }),
 
   welcome: ({ user }) => ({
-    subject: 'Welcome to Ooty Originals',
+    subject: 'Welcome to Sannara',
     html: luxuryLayout({
-      title: 'Welcome to Ooty Originals',
+      title: 'Welcome to Sannara',
       subtitle: 'Your account is now ready. Explore authentic Nilgiri teas, artisanal chocolates, and pure essential oils sourced directly from the hills.',
       badgeText: 'Welcome',
       badgeTone: 'green',
@@ -356,7 +356,7 @@ module.exports = {
   }),
 
   loginAlert: ({ user, when, ip }) => ({
-    subject: 'New sign-in to your Ooty Originals account',
+    subject: 'New sign-in to your Sannara account',
     html: luxuryLayout({
       title: 'New Sign-in Alert',
       subtitle: 'We detected a new sign-in to your account.',
@@ -376,7 +376,7 @@ module.exports = {
   }),
 
   passwordReset: ({ user, url }) => ({
-    subject: 'Reset your Ooty Originals password',
+    subject: 'Reset your Sannara password',
     html: luxuryLayout({
       title: 'Password Reset Request',
       subtitle: 'We received a request to reset the password for your account. This link is valid for 5 minutes.',
@@ -392,7 +392,7 @@ module.exports = {
   }),
 
   passwordChanged: ({ user }) => ({
-    subject: 'Your Ooty Originals password was changed',
+    subject: 'Your Sannara password was changed',
     html: luxuryLayout({
       title: 'Password Successfully Updated',
       subtitle: 'The password for your account has been changed.',
@@ -409,7 +409,7 @@ module.exports = {
   }),
 
   contactReceived: ({ name }) => ({
-    subject: 'We received your message · Ooty Originals',
+    subject: 'We received your message · Sannara',
     html: luxuryLayout({
       title: 'Message Received',
       subtitle: 'Thank you for reaching out to us. Our hill concierge team will get back to you within 24 hours.',

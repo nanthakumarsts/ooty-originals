@@ -13,7 +13,7 @@ export default function AuthShell({ title, subtitle, children, footer }) {
         <div className="absolute inset-0 bg-gradient-to-t from-brand-900/85 via-brand-900/20 to-transparent" />
         <blockquote className="absolute inset-x-10 bottom-10 text-white">
           <p className="font-display text-3xl leading-snug">“Every product carries the soul of these magnificent hills.”</p>
-          <footer className="mt-4 text-sm tracking-wide text-white/80">Ooty Originals · The Nilgiris</footer>
+          <footer className="mt-4 text-sm tracking-wide text-white/80">Sannara · The Nilgiris</footer>
         </blockquote>
       </div>
     </div>

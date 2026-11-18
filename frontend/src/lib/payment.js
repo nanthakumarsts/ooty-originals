@@ -38,7 +38,7 @@ export async function payWithRazorpay({ order, payment, user }) {
       order_id: payment.gatewayOrderId,
       amount: payment.amount,
       currency: payment.currency,
-      name: 'Ooty Originals',
+      name: 'Sannara',
       description: `Order ${order.order_number}`,
       prefill: { name: user.name, email: user.email, contact: user.phone || order.ship_phone },
       theme: { color: '#125F2E' },

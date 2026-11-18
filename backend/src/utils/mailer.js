@@ -69,8 +69,8 @@ async function sendTestMail(to) {
     const info = await transporter.sendMail({
       from: smtp.from,
       to,
-      subject: 'Ooty Originals — test email',
-      html: '<p style="font:16px/1.5 Arial,sans-serif;color:#1A3338">It works. Order, payment and account emails from the Ooty Originals store will be sent from this address.</p>',
+      subject: 'Sannara — test email',
+      html: '<p style="font:16px/1.5 Arial,sans-serif;color:#1A3338">It works. Order, payment and account emails from the Sannara store will be sent from this address.</p>',
     });
     return info;
   } catch (err) {

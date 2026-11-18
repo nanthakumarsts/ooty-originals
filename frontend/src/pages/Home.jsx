@@ -219,7 +219,7 @@ const DEFAULT_PROMO_CARDS = [
 ];
 
 const DEFAULT_PROMO_BANNER = {
-  eyebrow: 'WELCOME OOTY ORIGINALS',
+  eyebrow: 'WELCOME TO SANNARA',
   title: 'TODAY SPECIAL',
   title_highlight: 'TEA TIME HAMPER',
   subtitle: 'Limits Time Offer · 5 Rare Nilgiri Treasures',
@@ -452,7 +452,7 @@ export default function Home() {
               <div className="relative z-10 grid items-center gap-8 lg:grid-cols-[1.1fr_0.9fr]">
                 <div className="max-w-xl">
                   <span className="inline-block text-xs font-semibold tracking-widest text-white/80 uppercase sm:text-sm">
-                    {promoBanner.eyebrow || 'WELCOME OOTY ORIGINALS'}
+                    {promoBanner.eyebrow || 'WELCOME TO SANNARA'}
                   </span>
                   <h2 className="mt-3 font-display text-3xl font-medium leading-tight tracking-tight text-white sm:text-4xl lg:text-5xl">
                     <Link to={promoBanner.button_link || '/shop'} className="hover:underline">

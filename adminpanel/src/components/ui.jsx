@@ -5,7 +5,7 @@ export const cx = (...classes) => classes.filter(Boolean).join(' ');
 
 export function usePageTitle(title) {
   useEffect(() => {
-    document.title = title ? `${title} · Ooty Originals Admin` : 'Ooty Originals Admin';
+    document.title = title ? `${title} · Sannara Admin` : 'Sannara Admin';
   }, [title]);
 }
 

@@ -65,7 +65,7 @@ export default function Login() {
     <AuthShell
       title="Welcome back"
       subtitle="Sign in to track orders and check out faster."
-      footer={<>New to Ooty Originals? <Link to="/register" state={{ ...location.state, email: form.email }} data-no-transition className="link">Create an account</Link></>}
+      footer={<>New to Sannara? <Link to="/register" state={{ ...location.state, email: form.email }} data-no-transition className="link">Create an account</Link></>}
     >
       <form onSubmit={submit} noValidate autoComplete="off" className="space-y-4">
         {/* Decoy inputs to capture unwanted browser auto-fill */}

@@ -39,7 +39,7 @@ function Sidebar({ counts, onNavigate }) {
   return (
     <div className="flex h-full flex-col bg-brand-900 text-white">
       <Link to="/" onClick={onNavigate} className="flex h-16 shrink-0 items-center gap-3 border-b border-white/10 px-5" aria-label="Dashboard">
-        <img src="/images/logo-white.png" alt="Ooty Originals" className="h-9 w-auto" />
+        <img src="/images/logo-white.png" alt="Sannara" className="h-9 w-auto" />
         <span className="rounded-md bg-white/10 px-1.5 py-0.5 text-[11px] font-semibold tracking-wider text-brand-200 uppercase">Admin</span>
       </Link>
       <nav aria-label="Main" className="sidebar-scroll min-h-0 flex-1 overflow-y-auto overscroll-contain px-3 py-4">
@@ -156,7 +156,7 @@ export default function Layout({ children }) {
         <button type="button" className="icon-btn -ml-1.5 size-10 lg:hidden" onClick={() => setOpen(true)} aria-label="Open menu" aria-expanded={open}>
           <Menu className="size-5" aria-hidden />
         </button>
-        <img src="/images/logo.png" alt="Ooty Originals" className="h-8 w-auto lg:hidden" />
+        <img src="/images/logo.png" alt="Sannara" className="h-8 w-auto lg:hidden" />
         <p className="hidden text-sm text-ink-500 lg:block">{new Date().toLocaleDateString('en-IN', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}</p>
         <div className="ml-auto flex items-center gap-1 sm:gap-2">
           <TopLink to="/orders?status=confirmed" icon={ShoppingCart} count={counts.to_fulfil} label="Orders to fulfil" />

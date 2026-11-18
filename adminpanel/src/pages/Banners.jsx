@@ -72,7 +72,7 @@ const EMPTY_PROMO_CARD = {
 };
 
 const DEFAULT_PROMO_BANNER = {
-  eyebrow: 'WELCOME OOTY ORIGINALS',
+  eyebrow: 'WELCOME TO SANNARA',
   title: 'TODAY SPECIAL',
   title_highlight: 'TEA TIME HAMPER',
   subtitle: 'Limits Time Offer · 5 Rare Nilgiri Treasures',
@@ -86,7 +86,7 @@ const DEFAULT_PROMO_BANNER = {
 };
 
 const EMPTY_PROMO_BANNER = {
-  eyebrow: 'WELCOME OOTY ORIGINALS',
+  eyebrow: 'WELCOME TO SANNARA',
   title: 'TODAY SPECIAL',
   title_highlight: '',
   subtitle: 'Limits Time Offer',
@@ -582,7 +582,7 @@ export default function Banners() {
                         <p className="mt-1 text-[12px] text-ink-400">Used for the featured box and atmospheric blurred background.</p>
                       </div>
 
-                      <Field label="Top Eyebrow" value={banner.eyebrow} onChange={(e) => updateBannerField(idx, 'eyebrow', e.target.value)} placeholder="WELCOME OOTY ORIGINALS" />
+                      <Field label="Top Eyebrow" value={banner.eyebrow} onChange={(e) => updateBannerField(idx, 'eyebrow', e.target.value)} placeholder="WELCOME TO SANNARA" />
                       <Field label="Main Headline" required value={banner.title} onChange={(e) => updateBannerField(idx, 'title', e.target.value)} placeholder="TODAY SPECIAL" />
                       <Field label="Headline Highlight" value={banner.title_highlight} onChange={(e) => updateBannerField(idx, 'title_highlight', e.target.value)} placeholder="TEA TIME HAMPER" />
                       <Field label="Subheading" value={banner.subtitle} onChange={(e) => updateBannerField(idx, 'subtitle', e.target.value)} placeholder="Limits Time Offer · 5 Rare Nilgiri Treasures" />

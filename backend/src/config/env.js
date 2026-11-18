@@ -14,7 +14,7 @@ function mailSettings() {
   // Google shows app passwords as "abcd efgh ijkl mnop" — the spaces are not part of it
   const pass = gmail ? (env.SMTP_PASS || '').replace(/\s+/g, '') : env.SMTP_PASS || '';
   const port = Number(env.SMTP_PORT) || 465;
-  const name = (env.MAIL_FROM_NAME || 'Ooty Originals').replace(/["<>]/g, '').trim();
+  const name = (env.MAIL_FROM_NAME || 'Sannara').replace(/["<>]/g, '').trim();
   return {
     host,
     gmail,
