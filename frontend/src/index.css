@@ -1,0 +1,456 @@
+@import "tailwindcss";
+
+/* ------------------------------------------------------------------
+   Design tokens — drawn from the Ooty Originals logo
+   Forest green #125F2E · Deep slate #1A3338 · warm paper neutrals
+------------------------------------------------------------------- */
+@theme {
+  --font-sans: "DM Sans Variable", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Fraunces Variable", Georgia, "Times New Roman", serif;
+
+  --color-brand-50: #f1f7f2;
+  --color-brand-100: #dcebdf;
+  --color-brand-200: #b9d7c0;
+  --color-brand-300: #8bbb97;
+  --color-brand-400: #559a68;
+  --color-brand-500: #2f7d47;
+  --color-brand-600: #125f2e;
+  --color-brand-700: #0e4e26;
+  --color-brand-800: #0b3e1f;
+  --color-brand-900: #082e17;
+
+  --color-ink-950: #0b1a1c;
+  --color-ink-900: #1a3338;
+  --color-ink-700: #33494e;
+  --color-ink-500: #5a6b6f;
+  --color-ink-400: #7e8c8f;
+  --color-ink-300: #a9b4b6;
+
+  --color-cream: #faf8f3;
+  --color-sand-100: #f4f0e7;
+  --color-sand-200: #e9e4d8;
+  --color-sand-300: #d9d2c2;
+
+  --color-gold-500: #b08535;
+  --color-gold-700: #86621f;
+  --color-clay-600: #b3402e;
+  --color-clay-50: #fbeeeb;
+
+  --shadow-soft: 0 1px 2px rgb(26 51 56 / 0.04), 0 8px 24px -12px rgb(26 51 56 / 0.12);
+  --shadow-lift: 0 2px 4px rgb(26 51 56 / 0.04), 0 18px 40px -18px rgb(26 51 56 / 0.22);
+
+  --ease-soft: cubic-bezier(0.22, 1, 0.36, 1);
+
+  --animate-fade-up: fade-up 0.5s var(--ease-soft) both;
+  --animate-fade-in: fade-in 0.25s ease-out both;
+  --animate-slide-in: slide-in 0.3s var(--ease-soft) both;
+  --animate-slide-in-right: slide-in-right 0.35s var(--ease-soft) both;
+
+  @keyframes slide-in-right {
+    from { transform: translateX(100%); }
+    to { transform: translateX(0); }
+  }
+  --animate-rise: fade-up 0.9s var(--ease-soft) both;
+  --animate-pop: pop 0.45s var(--ease-soft) both;
+  --animate-hero-zoom: hero-zoom 2.4s var(--ease-soft) both;
+
+  @keyframes pop {
+    0% { transform: scale(0.5); }
+    55% { transform: scale(1.18); }
+    100% { transform: scale(1); }
+  }
+  @keyframes hero-zoom {
+    from { transform: scale(1.12); }
+    to { transform: scale(1); }
+  }
+
+  @keyframes fade-up {
+    from { opacity: 0; transform: translateY(12px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes fade-in {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+  @keyframes slide-in {
+    from { transform: translateX(-100%); }
+    to { transform: translateX(0); }
+  }
+
+  --animate-marquee: marquee 35s linear infinite;
+  --animate-float-y: float-bob-y 4s ease-in-out infinite;
+  --animate-float-x: float-bob-x 5s ease-in-out infinite;
+  --animate-spin-slow: cir36 20s linear infinite;
+
+  @keyframes marquee {
+    from { transform: translate3d(0, 0, 0); }
+    to { transform: translate3d(-50%, 0, 0); }
+  }
+
+  @keyframes float-bob-y {
+    0%, 100% { transform: translateY(0px); }
+    50% { transform: translateY(-12px); }
+  }
+
+  @keyframes float-bob-x {
+    0%, 100% { transform: translateX(0px); }
+    50% { transform: translateX(10px); }
+  }
+
+  @keyframes cir36 {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+  }
+}
+
+.float-bob-y {
+  animation: float-bob-y 4s ease-in-out infinite;
+}
+
+.float-bob-x {
+  animation: float-bob-x 5s ease-in-out infinite;
+}
+
+.spin-slow {
+  animation: cir36 20s linear infinite;
+}
+
+.marquee-track {
+  display: flex;
+  width: max-content;
+  animation: marquee 35s linear infinite;
+  will-change: transform;
+  touch-action: pan-y;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .marquee-track:hover {
+    animation-play-state: paused;
+  }
+}
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+    -webkit-text-size-adjust: 100%;
+  }
+  body {
+    @apply bg-cream font-sans text-ink-900 antialiased;
+    font-size: 16px;
+    line-height: 1.6;
+  }
+  h1, h2, h3 {
+    @apply font-display tracking-tight text-ink-900;
+    font-variation-settings: "opsz" 72, "SOFT" 50;
+    text-wrap: balance;
+  }
+  button, [role="button"], summary, label[for], select {
+    cursor: pointer;
+  }
+  button:disabled {
+    cursor: not-allowed;
+  }
+  :focus-visible {
+    outline: 2px solid var(--color-brand-600);
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
+  ::selection {
+    background: var(--color-brand-100);
+  }
+  /* Edge adds its own "show password" eye; we already provide one. */
+  input::-ms-reveal, input::-ms-clear {
+    display: none;
+  }
+  img {
+    @apply select-none;
+  }
+}
+
+@layer components {
+  .container-page {
+    @apply mx-auto w-full max-w-[1280px] px-4 sm:px-6 lg:px-10;
+  }
+  .eyebrow {
+    @apply text-xs font-semibold uppercase tracking-[0.18em] text-gold-700;
+  }
+  .section-title {
+    @apply text-3xl font-medium sm:text-4xl;
+  }
+
+  /* Buttons */
+  .btn {
+    @apply relative inline-flex min-h-11 items-center justify-center gap-2 overflow-hidden rounded-full px-6 text-[15px] font-semibold transition-all duration-200 select-none;
+  }
+  /* Arrow icons inside a button lean forward on hover */
+  .btn > .lucide-arrow-right {
+    @apply transition-transform duration-300 ease-soft;
+  }
+  .btn:hover > .lucide-arrow-right {
+    @apply translate-x-1;
+  }
+  .btn:disabled {
+    @apply opacity-55;
+  }
+  .btn-primary {
+    @apply bg-brand-600 text-white hover:bg-brand-700 active:scale-[0.98];
+  }
+  .btn-dark {
+    @apply bg-ink-900 text-white hover:bg-ink-700 active:scale-[0.98];
+  }
+  .btn-outline {
+    @apply border border-sand-300 bg-white text-ink-900 hover:border-ink-900 active:scale-[0.98];
+  }
+  .btn-light {
+    @apply bg-white text-ink-900 hover:bg-sand-100 active:scale-[0.98];
+  }
+  .btn-ghost {
+    @apply px-3 text-ink-700 hover:bg-sand-100;
+  }
+  .btn-sm {
+    @apply min-h-9 px-4 text-sm;
+  }
+  .btn-lg {
+    @apply min-h-13 px-8 text-base;
+  }
+  .icon-btn {
+    @apply relative inline-flex size-11 items-center justify-center rounded-full text-ink-900 transition-colors duration-200 hover:bg-sand-100;
+  }
+  .link {
+    @apply font-medium text-brand-600 underline-offset-4 hover:underline;
+  }
+
+  /* Forms */
+  .label {
+    @apply mb-1.5 block text-sm font-medium text-ink-700;
+  }
+  .input {
+    @apply block min-h-12 w-full rounded-xl border border-sand-300 bg-white px-4 text-base text-ink-900 transition-colors duration-200 placeholder:text-ink-300 hover:border-ink-300 focus:border-brand-600 focus:ring-4 focus:ring-brand-600/10 focus:outline-none;
+  }
+  .input[aria-invalid="true"] {
+    @apply border-clay-600 focus:border-clay-600 focus:ring-clay-600/10;
+  }
+  textarea.input {
+    @apply py-3;
+  }
+
+  .card {
+    @apply rounded-2xl border border-sand-200 bg-white;
+  }
+  .chip {
+    @apply inline-flex min-h-10 items-center gap-1.5 rounded-full border border-sand-300 bg-white px-4 text-sm font-medium text-ink-700 transition-colors duration-200 hover:border-ink-900;
+  }
+  .chip-active {
+    @apply border-brand-600 bg-brand-600 text-white hover:border-brand-600;
+  }
+  /* Placeholder blocks shown while content loads: a soft light sweeps across them */
+  .skeleton {
+    @apply relative overflow-hidden rounded-xl bg-sand-200/70;
+  }
+  .skeleton::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    translate: -100% 0;
+    pointer-events: none; /* skeleton */
+    background: linear-gradient(90deg, transparent, rgb(255 255 255 / 0.6), transparent);
+    animation: shimmer 1.5s ease-in-out infinite;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .skeleton::after {
+      animation: none;
+    }
+  }
+
+  /* Rich text written in the admin panel (product descriptions, policy pages) */
+  .rich {
+    @apply text-[15.5px] leading-[1.75] text-ink-700;
+  }
+  .rich h2 {
+    @apply mt-9 mb-3 text-2xl font-medium text-ink-900 first:mt-0;
+  }
+  .rich h3, .rich h4 {
+    @apply mt-7 mb-2 font-sans text-lg font-semibold tracking-normal text-ink-900 first:mt-0;
+  }
+  .rich p {
+    @apply mb-4 last:mb-0;
+  }
+  .rich ul, .rich ol {
+    @apply mb-4 space-y-1.5 pl-5;
+  }
+  .rich ul {
+    @apply list-disc marker:text-brand-400;
+  }
+  .rich ol {
+    @apply list-decimal marker:text-ink-400;
+  }
+  .rich strong, .rich b {
+    @apply font-semibold text-ink-900;
+  }
+  .rich a {
+    @apply text-brand-600 underline underline-offset-4;
+  }
+  .rich table {
+    @apply mb-4 w-full border-collapse text-sm;
+  }
+  .rich th, .rich td {
+    @apply border border-sand-200 px-3 py-2 text-left align-top;
+  }
+  .rich th {
+    @apply bg-sand-100 font-semibold text-ink-900;
+  }
+}
+
+/* ------------------------------------------------------------------
+   Motion
+------------------------------------------------------------------- */
+
+/* Hero banners: the active dot fills up while its banner is showing (components/HeroSlider.jsx) */
+.hero-progress {
+  animation-name: hero-progress;
+  animation-timing-function: linear;
+  animation-fill-mode: both;
+}
+@keyframes hero-progress {
+  from { transform: scaleX(0); }
+  to { transform: scaleX(1); }
+}
+
+/* Scroll reveal — see components/Reveal.jsx */
+.reveal {
+  opacity: 0;
+  transform: translateY(26px);
+  transition:
+    opacity 0.8s var(--ease-soft) var(--reveal-delay, 0ms),
+    transform 0.8s var(--ease-soft) var(--reveal-delay, 0ms);
+}
+.reveal.is-visible {
+  opacity: 1;
+  transform: none;
+}
+/* Group variant: the children rise in turn once the row is on screen */
+.reveal-group > * {
+  opacity: 0;
+  transform: translateY(26px);
+  transition:
+    opacity 0.8s var(--ease-soft) calc(var(--i, 0) * 70ms),
+    transform 0.8s var(--ease-soft) calc(var(--i, 0) * 70ms);
+}
+.reveal-group.is-visible > * {
+  opacity: 1;
+  transform: none;
+}
+/* Text reveal: each word slides up from behind a mask (components/TextReveal.jsx) */
+.text-reveal-word {
+  display: inline-block;
+  overflow: hidden;
+  vertical-align: bottom;
+  /* room for descenders (g, y) and tall letters so the mask does not clip them */
+  padding: 0.08em 0 0.16em;
+  margin: -0.08em 0 -0.16em;
+}
+.text-reveal-word > span {
+  display: inline-block;
+  transform: translateY(115%);
+  transition: transform 0.95s var(--ease-soft);
+  transition-delay: calc(var(--reveal-delay, 0ms) + var(--i, 0) * 65ms);
+}
+.text-reveal.is-visible .text-reveal-word > span {
+  transform: none;
+}
+
+@media print {
+  .reveal, .reveal-group > * {
+    opacity: 1;
+    transform: none;
+  }
+  .text-reveal-word > span {
+    transform: none;
+  }
+}
+
+/* Press ripple: a circle that grows from the exact point a button is pressed (lib/motion.js) */
+.ripple-dot {
+  position: absolute;
+  border-radius: 9999px;
+  background: currentColor;
+  opacity: 0.22;
+  transform: scale(0);
+  pointer-events: none;
+  animation: ripple 0.65s ease-out forwards;
+}
+@keyframes ripple {
+  to {
+    transform: scale(1);
+    opacity: 0;
+  }
+}
+
+/* Circle fill: round buttons fill with brand green from the centre on hover */
+.circle-fill {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+}
+.circle-fill::before {
+  content: "";
+  position: absolute;
+  inset: -1px;
+  z-index: -1;
+  border-radius: inherit;
+  background: var(--color-brand-600);
+  transform: scale(0);
+  transition: transform 0.45s var(--ease-soft);
+}
+.circle-fill:not(:disabled):hover::before,
+.circle-fill:not(:disabled):focus-visible::before,
+.group:hover .circle-fill-group::before {
+  transform: scale(1);
+}
+
+/*
+  Circle page transition — the new page opens as a circle growing from where you clicked,
+  like a theme-switch reveal. The position and radius are set by components/CircleTransition.jsx.
+*/
+html.circle-nav::view-transition-old(root),
+html.circle-nav::view-transition-new(root) {
+  animation: none;
+  mix-blend-mode: normal;
+}
+html.circle-nav::view-transition-old(root) {
+  z-index: 0;
+}
+html.circle-nav::view-transition-new(root) {
+  z-index: 1;
+  animation: circle-reveal 0.7s cubic-bezier(0.65, 0, 0.35, 1) both;
+}
+@keyframes circle-reveal {
+  from {
+    clip-path: circle(0px at var(--circle-x, 50%) var(--circle-y, 50%));
+  }
+  to {
+    clip-path: circle(var(--circle-r, 150vmax) at var(--circle-x, 50%) var(--circle-y, 50%));
+  }
+}
+
+@utility scrollbar-none {
+  scrollbar-width: none;
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+@keyframes shimmer {
+  to {
+    translate: 100% 0;
+  }
+}
