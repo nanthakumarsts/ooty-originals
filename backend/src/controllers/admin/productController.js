@@ -6,6 +6,7 @@ const { uniqueSlug, cleanHtml, parseJSON, paging } = require('../../utils/helper
 
 const money = z.coerce.number().min(0, 'Price cannot be negative').max(999999);
 const optionalMoney = z.preprocess((v) => (v === '' || v == null ? null : v), z.coerce.number().min(0).max(999999).nullable());
+const optionalDimension = z.preprocess((v) => (v === '' || v == null ? null : v), z.coerce.number().positive().max(9999).nullable());
 
 const productSchema = z.object({
   name: z.string().trim().min(2, 'Enter a product name').max(190),
@@ -15,6 +16,10 @@ const productSchema = z.object({
   short_description: z.string().trim().max(700).optional().default(''),
   description: z.string().max(60000).optional().default(''),
   tags: z.string().trim().max(500).optional().default(''),
+  package_length: optionalDimension,
+  package_breadth: optionalDimension,
+  package_height: optionalDimension,
+  package_weight: optionalDimension,
   price: money,
   compare_price: optionalMoney,
   stock: z.coerce.number().int().min(0).max(1000000).default(0),
@@ -57,10 +62,14 @@ async function list(req, res) {
   if (req.query.status === 'hidden') where.push('p.is_active = 0');
   if (req.query.status === 'out') where.push('p.stock <= 0');
   if (req.query.status === 'low') where.push('p.stock BETWEEN 1 AND 5');
+  if (req.query.status === 'missing_shipping') {
+    where.push('(p.package_length IS NULL OR p.package_length <= 0 OR p.package_breadth IS NULL OR p.package_breadth <= 0 OR p.package_height IS NULL OR p.package_height <= 0 OR p.package_weight IS NULL OR p.package_weight <= 0)');
+  }
 
   const [{ total }] = await q(`SELECT COUNT(*) AS total FROM products p WHERE ${where.join(' AND ')}`, params);
   const rows = await q(
     `SELECT p.id, p.name, p.slug, p.sku, p.price, p.compare_price, p.stock, p.is_active, p.is_bestseller, p.is_new, p.is_featured,
+            p.package_length, p.package_breadth, p.package_height, p.package_weight,
             c.name AS category_name, sc.name AS sub_name,
             (SELECT url FROM product_images WHERE product_id = p.id ORDER BY sort_order, id LIMIT 1) AS image,
             (SELECT COUNT(*) FROM product_variants WHERE product_id = p.id) AS variant_count
@@ -104,7 +113,9 @@ async function save(req, res) {
 
   const fields = [
     d.category_id, d.subcategory_id, d.name, slug, d.sku || null, d.short_description || null, cleanHtml(d.description) || null,
-    JSON.stringify(d.specifications), d.tags || null, price, comparePrice, stock,
+    JSON.stringify(d.specifications), d.tags || null,
+    d.package_length ?? null, d.package_breadth ?? null, d.package_height ?? null, d.package_weight ?? null,
+    price, comparePrice, stock,
     d.is_active ? 1 : 0, d.is_featured ? 1 : 0, d.is_bestseller ? 1 : 0, d.is_new ? 1 : 0,
   ];
 
@@ -113,14 +124,16 @@ async function save(req, res) {
     if (pid) {
       await run(
         `UPDATE products SET category_id = ?, subcategory_id = ?, name = ?, slug = ?, sku = ?, short_description = ?, description = ?,
-            specifications = ?, tags = ?, price = ?, compare_price = ?, stock = ?, is_active = ?, is_featured = ?, is_bestseller = ?, is_new = ?
+            specifications = ?, tags = ?, package_length = ?, package_breadth = ?, package_height = ?, package_weight = ?,
+            price = ?, compare_price = ?, stock = ?, is_active = ?, is_featured = ?, is_bestseller = ?, is_new = ?
           WHERE id = ?`,
         [...fields, pid]
       );
     } else {
       const result = await run(
         `INSERT INTO products (category_id, subcategory_id, name, slug, sku, short_description, description, specifications, tags,
-            price, compare_price, stock, is_active, is_featured, is_bestseller, is_new) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+            package_length, package_breadth, package_height, package_weight,
+            price, compare_price, stock, is_active, is_featured, is_bestseller, is_new) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
         fields
       );
       pid = result.insertId;

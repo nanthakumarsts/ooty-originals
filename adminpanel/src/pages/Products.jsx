@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
-import { Package, Pencil, Plus, Trash2 } from 'lucide-react';
+import { AlertTriangle, Package, Pencil, Plus, Trash2 } from 'lucide-react';
 import api from '../lib/api';
 import { img, inr } from '../lib/format';
 import { useApp } from '../context/AppContext';
@@ -79,7 +79,19 @@ export default function Products() {
         <div className="grid gap-3 border-b border-line p-4 sm:grid-cols-[1fr_200px_180px]">
           <SearchInput value={search} onChange={setSearch} placeholder="Search by name or SKU" />
           <Select label="Category" value={category} onChange={(v) => setParam({ category: v })} options={categoryOptions} />
-          <Select label="Status" value={status} onChange={(v) => setParam({ status: v })} options={[['', 'All statuses'], ['active', 'Visible'], ['hidden', 'Hidden'], ['low', 'Low stock'], ['out', 'Out of stock']]} />
+          <Select
+            label="Status"
+            value={status}
+            onChange={(v) => setParam({ status: v })}
+            options={[
+              ['', 'All statuses'],
+              ['active', 'Visible'],
+              ['hidden', 'Hidden'],
+              ['low', 'Low stock'],
+              ['out', 'Out of stock'],
+              ['missing_shipping', 'Missing shipping info'],
+            ]}
+          />
         </div>
 
         {!data ? (
@@ -95,42 +107,69 @@ export default function Products() {
                 <tr><th>Product</th><th>Category</th><th className="text-right">Price</th><th className="text-right">Stock</th><th>Visible</th><th><span className="sr-only">Actions</span></th></tr>
               </thead>
               <tbody>
-                {data.items.map((p) => (
-                  <tr key={p.id}>
-                    <td>
-                      <Link to={`/products/${p.id}`} className="group flex min-w-56 items-center gap-3">
-                        <img src={img(p.image)} alt="" loading="lazy" className="h-12 w-10 shrink-0 rounded-md bg-canvas object-cover" />
-                        <span className="min-w-0">
-                          <span className="line-clamp-1 font-semibold group-hover:text-brand-600">{p.name}</span>
-                          <span className="flex flex-wrap gap-1 pt-0.5">
-                            {p.variant_count > 0 && <span className="text-xs text-ink-500">{p.variant_count} options</span>}
-                            {!!p.is_bestseller && <Badge tone="amber">Best seller</Badge>}
-                            {!!p.is_new && <Badge tone="green">New</Badge>}
+                {data.items.map((p) => {
+                  const hasShipping =
+                    Number(p.package_length) > 0 &&
+                    Number(p.package_breadth) > 0 &&
+                    Number(p.package_height) > 0 &&
+                    Number(p.package_weight) > 0;
+
+                  return (
+                    <tr key={p.id}>
+                      <td>
+                        <Link to={`/products/${p.id}`} className="group flex min-w-56 items-center gap-3">
+                          <img src={img(p.image)} alt="" loading="lazy" className="h-12 w-10 shrink-0 rounded-md bg-canvas object-cover" />
+                          <span className="min-w-0">
+                            <span className="line-clamp-1 font-semibold group-hover:text-brand-600">{p.name}</span>
+                            <span className="flex flex-wrap gap-1 pt-0.5">
+                              {p.variant_count > 0 && <span className="text-xs text-ink-500">{p.variant_count} options</span>}
+                              {!!p.is_bestseller && <Badge tone="amber">Best seller</Badge>}
+                              {!!p.is_new && <Badge tone="green">New</Badge>}
+                            </span>
                           </span>
-                        </span>
-                      </Link>
-                    </td>
-                    <td className="whitespace-nowrap text-ink-500">{p.category_name || '—'}{p.sub_name ? ` › ${p.sub_name}` : ''}</td>
-                    <td className="text-right whitespace-nowrap tabular-nums">
-                      <span className="font-semibold">{p.variant_count > 0 ? 'from ' : ''}{inr(p.price)}</span>
-                      {p.compare_price > p.price && <span className="block text-xs text-ink-400 line-through">{inr(p.compare_price)}</span>}
-                    </td>
-                    <td className="text-right">
-                      <Badge tone={p.stock <= 0 ? 'red' : p.stock <= 5 ? 'amber' : 'gray'}>{p.stock <= 0 ? 'Out of stock' : p.stock}</Badge>
-                    </td>
-                    <td>
-                      <button type="button" role="switch" aria-checked={!!p.is_active} aria-label={`${p.name} visible in store`} onClick={() => toggleVisible(p)} className={cx('relative h-6 w-11 rounded-full transition-colors duration-200', p.is_active ? 'bg-brand-600' : 'bg-line-strong')}>
-                        <span className={cx('absolute top-0.5 left-0.5 size-5 rounded-full bg-white shadow transition-transform duration-200', p.is_active && 'translate-x-5')} />
-                      </button>
-                    </td>
-                    <td>
-                      <div className="flex justify-end gap-0.5">
-                        <Link to={`/products/${p.id}`} className="icon-btn" aria-label={`Edit ${p.name}`} title="Edit"><Pencil className="size-4" aria-hidden /></Link>
-                        <button type="button" onClick={() => setRemoving(p)} className="icon-btn hover:bg-clay-50 hover:text-clay-600" aria-label={`Delete ${p.name}`} title="Delete"><Trash2 className="size-4" aria-hidden /></button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
+                        </Link>
+                      </td>
+                      <td className="whitespace-nowrap text-ink-500">{p.category_name || '—'}{p.sub_name ? ` › ${p.sub_name}` : ''}</td>
+                      <td className="text-right whitespace-nowrap tabular-nums">
+                        <span className="font-semibold">{p.variant_count > 0 ? 'from ' : ''}{inr(p.price)}</span>
+                        {p.compare_price > p.price && <span className="block text-xs text-ink-400 line-through">{inr(p.compare_price)}</span>}
+                      </td>
+                      <td className="text-right">
+                        <Badge tone={p.stock <= 0 ? 'red' : p.stock <= 5 ? 'amber' : 'gray'}>{p.stock <= 0 ? 'Out of stock' : p.stock}</Badge>
+                      </td>
+                      <td className="whitespace-nowrap">
+                        <div className="flex items-center gap-2">
+                          <button
+                            type="button"
+                            role="switch"
+                            aria-checked={!!p.is_active}
+                            aria-label={`${p.name} visible in store`}
+                            onClick={() => toggleVisible(p)}
+                            className={cx('relative h-6 w-11 shrink-0 rounded-full transition-colors duration-200', p.is_active ? 'bg-brand-600' : 'bg-line-strong')}
+                          >
+                            <span className={cx('absolute top-0.5 left-0.5 size-5 rounded-full bg-white shadow transition-transform duration-200', p.is_active && 'translate-x-5')} />
+                          </button>
+                          {!hasShipping && (
+                            <Link
+                              to={`/products/${p.id}`}
+                              title="Missing Shiprocket package dimensions (L, B, H, W). Click to add."
+                              className="inline-flex items-center gap-1 rounded-md bg-amber-50 px-2 py-0.5 text-xs font-medium text-amber-800 border border-amber-200/90 hover:bg-amber-100 hover:border-amber-300 transition-colors"
+                            >
+                              <AlertTriangle className="size-3.5 text-amber-600 shrink-0" aria-hidden />
+                              <span>No shipping</span>
+                            </Link>
+                          )}
+                        </div>
+                      </td>
+                      <td>
+                        <div className="flex justify-end gap-0.5">
+                          <Link to={`/products/${p.id}`} className="icon-btn" aria-label={`Edit ${p.name}`} title="Edit"><Pencil className="size-4" aria-hidden /></Link>
+                          <button type="button" onClick={() => setRemoving(p)} className="icon-btn hover:bg-clay-50 hover:text-clay-600" aria-label={`Delete ${p.name}`} title="Delete"><Trash2 className="size-4" aria-hidden /></button>
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>
