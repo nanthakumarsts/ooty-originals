@@ -12,7 +12,7 @@ const EMPTY = {
   line1: '',
   line2: '',
   city: '',
-  state: 'Tamil Nadu',
+  state: '',
   pincode: '',
   is_default: false,
 };
@@ -25,14 +25,17 @@ export default function AddressForm({ address, defaultName = '', defaultPhone = 
         ...EMPTY,
         ...address,
         country: address.country || 'India',
+        state: address.state || '',
+        phone: address.phone || '',
         line2: address.line2 || '',
         is_default: !!address.is_default,
       };
     }
     return {
       ...EMPTY,
-      full_name: defaultName,
-      phone: defaultPhone || '',
+      full_name: defaultName || '',
+      phone: '',
+      state: '',
     };
   });
 
@@ -82,7 +85,7 @@ export default function AddressForm({ address, defaultName = '', defaultPhone = 
       let nextState = f.state;
       if (nextCountry.states) {
         if (!nextCountry.states.includes(nextState)) {
-          nextState = nextCountry.states[0] || '';
+          nextState = '';
         }
       } else {
         nextState = '';
@@ -178,7 +181,6 @@ export default function AddressForm({ address, defaultName = '', defaultPhone = 
         {...v.bind('phone')}
         autoComplete="tel-national"
         placeholder={selectedCountry.phonePlaceholder}
-        hint={selectedCountry.dialCode ? `Dial code: ${selectedCountry.dialCode}` : undefined}
       />
 
       <Field className="sm:col-span-2" label="House no., building, street" required value={form.line1} onChange={set('line1')} {...v.bind('line1')} autoComplete="address-line1" />
@@ -201,10 +203,11 @@ export default function AddressForm({ address, defaultName = '', defaultPhone = 
       {/* State: Dropdown for countries with preset states, or text input for international */}
       {selectedCountry.states ? (
         <Field className="sm:col-span-2" label="State / Province" required as="select" value={form.state} onChange={set('state')} {...v.bind('state')} autoComplete="address-level1">
+          <option value="">Select state / province</option>
           {selectedCountry.states.map((s) => <option key={s} value={s}>{s}</option>)}
         </Field>
       ) : (
-        <Field className="sm:col-span-2" label="State / Province / Region" required value={form.state} onChange={set('state')} {...v.bind('state')} autoComplete="address-level1" placeholder="e.g. England, Greater London, Bavaria" />
+        <Field className="sm:col-span-2" label="State / Province / Region" required value={form.state} onChange={set('state')} {...v.bind('state')} autoComplete="address-level1" placeholder="Enter state / province / region" />
       )}
 
       <label className="flex min-h-11 items-center gap-3 text-[15px] sm:col-span-2">
