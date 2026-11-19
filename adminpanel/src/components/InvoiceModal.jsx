@@ -104,7 +104,7 @@ export default function InvoiceModal({ order, open, onClose }) {
               <p className="font-semibold text-sm text-ink-900">{order.ship_name}</p>
               <p className="text-ink-600 mt-0.5 leading-relaxed">
                 {order.ship_line1}{order.ship_line2 ? `, ${order.ship_line2}` : ''}<br />
-                {order.ship_city}, {order.ship_state} – {order.ship_pincode}
+                {order.ship_city}, {order.ship_state} – {order.ship_pincode}{order.ship_country ? `, ${order.ship_country}` : ''}
               </p>
               <p className="text-ink-600 mt-0.5">Phone: {order.ship_phone}</p>
             </div>

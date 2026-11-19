@@ -151,7 +151,7 @@ export default function OrderResult() {
           <div>
             <p className="mb-1 text-sm font-semibold tracking-wider text-ink-400 uppercase">Delivering to</p>
             <p className="font-medium">{order.ship_name}</p>
-            <p className="text-ink-500">{order.ship_line1}{order.ship_line2 ? `, ${order.ship_line2}` : ''}<br />{order.ship_city}, {order.ship_state} – {order.ship_pincode}<br />{order.ship_phone}</p>
+            <p className="text-ink-500">{order.ship_line1}{order.ship_line2 ? `, ${order.ship_line2}` : ''}<br />{order.ship_city}, {order.ship_state} – {order.ship_pincode}{order.ship_country ? `, ${order.ship_country}` : ''}<br />Phone: {order.ship_phone}</p>
           </div>
           <div>
             <p className="mb-1 text-sm font-semibold tracking-wider text-ink-400 uppercase">Payment</p>

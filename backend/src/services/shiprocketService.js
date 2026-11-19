@@ -172,7 +172,7 @@ async function createOrder(order, items = [], pickupLocation = null) {
     billing_city: order.ship_city || '',
     billing_pincode: String(order.ship_pincode || ''),
     billing_state: order.ship_state || '',
-    billing_country: 'India',
+    billing_country: order.ship_country || 'India',
     billing_email: order.customer_email || 'orders@ootyoriginals.in',
     billing_phone: String(order.ship_phone || ''),
     shipping_is_billing: true,

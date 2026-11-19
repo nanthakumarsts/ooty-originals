@@ -75,7 +75,7 @@ export default function Addresses() {
                 {!!a.is_default && <Badge tone="green">Default</Badge>}
               </div>
               <p className="mt-2 text-[15px] leading-relaxed text-ink-500">
-                {a.line1}{a.line2 ? `, ${a.line2}` : ''}<br />{a.city}, {a.state} – {a.pincode}<br />Phone: {a.phone}
+                {a.line1}{a.line2 ? `, ${a.line2}` : ''}<br />{a.city}, {a.state} – {a.pincode}{a.country ? `, ${a.country}` : ''}<br />Phone: {a.phone}
               </p>
               <div className="mt-auto flex flex-wrap items-center gap-1 pt-4">
                 <button type="button" onClick={() => setEditing(a)} className="btn btn-ghost btn-sm"><Pencil className="size-4" aria-hidden /> Edit</button>

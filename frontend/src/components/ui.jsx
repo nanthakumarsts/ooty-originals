@@ -27,7 +27,7 @@ export function Button({ variant = 'primary', size, loading, className, children
 }
 
 /** Labelled input with inline error text. Pass `as="textarea"` or `as="select"` for other controls. */
-export function Field({ label, error, hint, as: Tag = 'input', className, children, type, ...props }) {
+export function Field({ label, error, hint, as: Tag = 'input', className, children, type, prefix, ...props }) {
   const id = useId();
   const [visible, setVisible] = useState(false);
   const isPassword = type === 'password';
@@ -37,10 +37,20 @@ export function Field({ label, error, hint, as: Tag = 'input', className, childr
         {label}
         {props.required && <span className="text-clay-600" aria-hidden> *</span>}
       </label>
-      <div className="relative">
+      <div className="relative flex items-center">
+        {prefix && (
+          <span className="pointer-events-none absolute left-3.5 z-10 flex items-center text-sm font-semibold text-ink-600 select-none">
+            {prefix}
+          </span>
+        )}
         <Tag
           id={id}
-          className={cx('input', isPassword && 'pr-12', Tag === 'select' && 'appearance-none pr-10')}
+          className={cx(
+            'input',
+            prefix && (prefix.length > 3 ? 'pl-16' : 'pl-14'),
+            isPassword && 'pr-12',
+            Tag === 'select' && 'appearance-none pr-10'
+          )}
           type={isPassword ? (visible ? 'text' : 'password') : type}
           aria-invalid={error ? 'true' : undefined}
           aria-describedby={error ? `${id}-error` : hint ? `${id}-hint` : undefined}

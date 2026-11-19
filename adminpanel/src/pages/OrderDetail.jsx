@@ -501,7 +501,7 @@ export default function OrderDetail() {
           <section className="card p-5 text-sm">
             <h2 className="card-title mb-3">Deliver to</h2>
             <p className="font-semibold">{order.ship_name}</p>
-            <p className="leading-relaxed text-ink-700">{order.ship_line1}{order.ship_line2 ? `, ${order.ship_line2}` : ''}<br />{order.ship_city}, {order.ship_state} – {order.ship_pincode}<br />Phone: {order.ship_phone}</p>
+            <p className="leading-relaxed text-ink-700">{order.ship_line1}{order.ship_line2 ? `, ${order.ship_line2}` : ''}<br />{order.ship_city}, {order.ship_state} – {order.ship_pincode}{order.ship_country ? `, ${order.ship_country}` : ''}<br />Phone: {order.ship_phone}</p>
             {order.tracking_number && <p className="mt-3 flex items-center gap-2 rounded-lg bg-canvas px-3 py-2"><Truck className="size-4 shrink-0 text-brand-600" aria-hidden /><span>{order.courier ? `${order.courier} · ` : ''}<strong>{order.tracking_number}</strong></span></p>}
             {order.notes && <p className="mt-3 rounded-lg bg-[#fdf6e7] p-3 text-[#7a5510]"><span className="font-semibold">Customer note:</span> {order.notes}</p>}
           </section>

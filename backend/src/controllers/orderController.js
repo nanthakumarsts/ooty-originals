@@ -34,6 +34,7 @@ async function place(req, res) {
     const quote = await buildQuote(run, data.items, data.couponCode, true, user.id, {
       pincode: address.pincode,
       paymentMethod: data.paymentMethod,
+      country: address.country || 'India',
     });
     if (!quote.items.length) throw new HttpError(409, 'The items in your cart are no longer available');
     if (quote.hasIssues) {
@@ -45,12 +46,12 @@ async function place(req, res) {
     const isCod = data.paymentMethod === 'cod';
     const result = await run(
       `INSERT INTO orders (user_id, status, payment_method, subtotal, discount, shipping_fee, total, coupon_code,
-          customer_name, customer_email, ship_name, ship_phone, ship_line1, ship_line2, ship_city, ship_state, ship_pincode, notes)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+          customer_name, customer_email, ship_name, ship_phone, ship_line1, ship_line2, ship_city, ship_state, ship_pincode, ship_country, notes)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [
         user.id, isCod ? 'confirmed' : 'pending', data.paymentMethod, quote.subtotal, quote.discount, quote.shipping, quote.total,
         quote.coupon ? quote.coupon.code : null, user.name, user.email,
-        address.full_name, address.phone, address.line1, address.line2, address.city, address.state, address.pincode, data.notes || null,
+        address.full_name, address.phone, address.line1, address.line2, address.city, address.state, address.pincode, address.country || 'India', data.notes || null,
       ]
     );
     const id = result.insertId;

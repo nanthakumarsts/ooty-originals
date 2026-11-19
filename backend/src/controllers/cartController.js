@@ -16,7 +16,8 @@ const itemsSchema = z
 const quoteSchema = z.object({
   items: itemsSchema,
   couponCode: z.string().trim().max(40).nullable().optional(),
-  pincode: z.string().trim().max(10).nullable().optional(),
+  pincode: z.string().trim().max(15).nullable().optional(),
+  country: z.string().trim().max(80).nullable().optional(),
   addressId: z.coerce.number().int().positive().nullable().optional(),
   paymentMethod: z.enum(['online', 'cod']).optional().default('online'),
 });
@@ -25,12 +26,15 @@ const quoteSchema = z.object({
 async function quote(req, res) {
   const data = validate(quoteSchema, req.body);
   let pincode = data.pincode ? String(data.pincode).trim() : null;
-  if (!pincode && data.addressId && req.user?.id) {
-    const [addr] = await q('SELECT pincode FROM addresses WHERE id = ? AND user_id = ?', [data.addressId, req.user.id]);
+  let country = data.country ? String(data.country).trim() : 'India';
+  if (data.addressId && req.user?.id) {
+    const [addr] = await q('SELECT pincode, country FROM addresses WHERE id = ? AND user_id = ?', [data.addressId, req.user.id]);
     if (addr?.pincode) pincode = String(addr.pincode).trim();
+    if (addr?.country) country = String(addr.country).trim();
   }
   res.json(await buildQuote(q, data.items, data.couponCode, false, req.user?.id || null, {
     pincode,
+    country,
     paymentMethod: data.paymentMethod,
   }));
 }

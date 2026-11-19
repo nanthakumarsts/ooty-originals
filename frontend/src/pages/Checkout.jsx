@@ -101,6 +101,7 @@ export default function Checkout() {
   const selectedAddress = useMemo(() => addresses?.find((a) => a.id === addressId), [addresses, addressId]);
   const { quote, loading } = useQuote(buyItems, {
     pincode: selectedAddress?.pincode,
+    country: selectedAddress?.country || 'India',
     addressId,
     paymentMethod: method,
   });
@@ -271,7 +272,7 @@ export default function Checkout() {
                       onChange={() => { setAddressId(a.id); setAddressError(''); }}
                       title={a.full_name}
                       badge={<Badge>{a.label}</Badge>}
-                      description={<>{a.line1}{a.line2 ? `, ${a.line2}` : ''}<br />{a.city}, {a.state} – {a.pincode}<br />Phone: {a.phone}</>}
+                      description={<>{a.line1}{a.line2 ? `, ${a.line2}` : ''}<br />{a.city}, {a.state} – {a.pincode}{a.country ? `, ${a.country}` : ''}<br />Phone: {a.phone}</>}
                       footer={
                         <button type="button" onClick={(e) => { e.preventDefault(); setAddressForm(a); }} className="mt-2 inline-flex min-h-8 items-center gap-1.5 text-sm font-medium text-brand-600 hover:underline">
                           <Pencil className="size-3.5" aria-hidden /> Edit
@@ -355,7 +356,7 @@ export default function Checkout() {
           {selected && (
             <p className="mt-5 flex items-start gap-2.5 rounded-xl bg-sand-100 px-3.5 py-3 text-sm leading-snug text-ink-700">
               <MapPin className="mt-0.5 size-4 shrink-0 text-brand-600" aria-hidden />
-              <span>Delivering to <strong className="font-semibold">{selected.full_name}</strong>, {selected.city} – {selected.pincode}</span>
+              <span>Delivering to <strong className="font-semibold">{selected.full_name}</strong>, {selected.city} – {selected.pincode}{selected.country ? `, ${selected.country}` : ''}</span>
             </p>
           )}
 

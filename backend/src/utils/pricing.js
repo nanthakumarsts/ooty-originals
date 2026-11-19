@@ -119,9 +119,10 @@ async function buildQuote(run, rawItems, couponCode, lock = false, userId = null
 
   let shipping = 0;
   let shippingDetails = null;
-  const { pincode = null, paymentMethod = 'online' } = (typeof shippingOptions === 'object' && shippingOptions !== null) ? shippingOptions : {};
+  const { pincode = null, paymentMethod = 'online', country = 'India' } = (typeof shippingOptions === 'object' && shippingOptions !== null) ? shippingOptions : {};
+  const isDomestic = !country || String(country).toLowerCase() === 'india';
 
-  if (pincode && /^\d{6}$/.test(String(pincode).trim())) {
+  if (isDomestic && pincode && /^\d{6}$/.test(String(pincode).trim())) {
     const totalUnits = items.reduce((sum, i) => sum + (i.quantity || 1), 0);
     const estWeight = Math.max(0.5, Math.round(totalUnits * 0.3 * 10) / 10);
     const isCod = paymentMethod === 'cod';
@@ -156,6 +157,16 @@ async function buildQuote(run, rawItems, couponCode, lock = false, userId = null
       shipping = !items.length || fee <= 0 || (freeFrom > 0 && afterDiscount >= freeFrom) ? 0 : fee;
       shippingDetails = null;
     }
+  } else if (!isDomestic) {
+    // International shipping: standard international courier rate
+    const intlFee = Number(settings.international_shipping_fee) || 1200;
+    shipping = !items.length ? 0 : intlFee;
+    shippingDetails = {
+      available: true,
+      rate: shipping,
+      courierName: 'International Air Courier',
+      source: 'international',
+    };
   } else {
     shipping = !items.length || fee <= 0 || (freeFrom > 0 && afterDiscount >= freeFrom) ? 0 : fee;
   }

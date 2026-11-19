@@ -14,7 +14,7 @@ export default function useQuote(items, options = {}) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
-  const { pincode = null, addressId = null, paymentMethod = 'online' } = options || {};
+  const { pincode = null, country = 'India', addressId = null, paymentMethod = 'online' } = options || {};
 
   useEffect(() => {
     if (!lines.length) {
@@ -30,6 +30,7 @@ export default function useQuote(items, options = {}) {
           items: lines,
           couponCode: coupon || null,
           pincode: pincode || undefined,
+          country: country || undefined,
           addressId: addressId || undefined,
           paymentMethod,
         })
@@ -46,7 +47,7 @@ export default function useQuote(items, options = {}) {
       active = false;
       clearTimeout(timer);
     };
-  }, [lines, items, coupon, pincode, addressId, paymentMethod, syncCart]);
+  }, [lines, items, coupon, pincode, country, addressId, paymentMethod, syncCart]);
 
   return { quote, loading, error };
 }
