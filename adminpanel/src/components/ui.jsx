@@ -35,7 +35,7 @@ export function Field({ label, error, hint, as: Tag = 'input', className, childr
   return (
     <div className={className}>
       {label && (
-        <label htmlFor={id} className="label">
+        <label htmlFor={id} className="label whitespace-nowrap">
           {label}
           {props.required && <span className="text-clay-600" aria-hidden> *</span>}
         </label>

@@ -226,9 +226,9 @@ export default function ProductForm() {
               </p>
             </div>
 
-            <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
+            <div className="grid grid-cols-2 gap-4 sm:grid-cols-4 items-start">
               <Field
-                label="Package Length (cm)"
+                label="Length (cm)"
                 type="number"
                 min="0.5"
                 step="0.1"
@@ -237,10 +237,10 @@ export default function ProductForm() {
                 value={form.package_length}
                 onChange={set('package_length')}
                 error={errors.package_length}
-                hint="Box outer length in cm"
+                hint="Box outer length"
               />
               <Field
-                label="Package Breadth (cm)"
+                label="Breadth (cm)"
                 type="number"
                 min="0.5"
                 step="0.1"
@@ -249,10 +249,10 @@ export default function ProductForm() {
                 value={form.package_breadth}
                 onChange={set('package_breadth')}
                 error={errors.package_breadth}
-                hint="Box outer width in cm"
+                hint="Box outer width"
               />
               <Field
-                label="Package Height (cm)"
+                label="Height (cm)"
                 type="number"
                 min="0.5"
                 step="0.1"
@@ -261,10 +261,10 @@ export default function ProductForm() {
                 value={form.package_height}
                 onChange={set('package_height')}
                 error={errors.package_height}
-                hint="Box outer height in cm"
+                hint="Box outer height"
               />
               <Field
-                label="Package Weight (kg)"
+                label="Weight (kg)"
                 type="number"
                 min="0.01"
                 step="0.01"
@@ -273,7 +273,7 @@ export default function ProductForm() {
                 value={form.package_weight}
                 onChange={set('package_weight')}
                 error={errors.package_weight}
-                hint="Weight after packing (kg)"
+                hint="Weight after packing"
               />
             </div>
 
