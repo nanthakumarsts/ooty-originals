@@ -3,7 +3,7 @@ const { q, tx } = require('../config/db');
 const { HttpError, validate } = require('../middleware/error');
 const { getValidator } = require('../utils/countryValidation');
 
-const baseSchema = z.object({
+const schema = z.object({
   label: z.string().trim().min(1).max(30).default('Home'),
   full_name: z.string().trim().min(2, 'Enter the recipient name').max(120),
   phone: z.string().trim().min(7, 'Enter phone number').max(30),
@@ -17,7 +17,7 @@ const baseSchema = z.object({
 });
 
 function validateAddressData(body) {
-  const d = validate(baseSchema, body);
+  const d = validate(schema, body);
   const country = d.country || 'India';
   const validator = getValidator(country);
 
