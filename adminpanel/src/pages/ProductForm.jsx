@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
-import { ArrowLeft, Plus, Trash2 } from 'lucide-react';
+import { ArrowLeft, Package, Plus, Trash2 } from 'lucide-react';
 import api from '../lib/api';
 import { useApp } from '../context/AppContext';
 import ImageUploader from '../components/ImageUploader';
@@ -10,6 +10,7 @@ import { Alert, Button, Field, PageHeader, PageSkeleton, Toggle, usePageTitle } 
 const EMPTY = {
   name: '', sku: '', category_id: '', subcategory_id: '', short_description: '', description: '', tags: '',
   price: '', compare_price: '', stock: 0, is_active: true, is_featured: false, is_bestseller: false, is_new: false,
+  package_length: '', package_breadth: '', package_height: '', package_weight: '',
   images: [], specifications: [], variants: [],
 };
 
@@ -40,6 +41,10 @@ export default function ProductForm() {
         setForm({
           ...EMPTY,
           ...p,
+          package_length: p.package_length ?? p.length ?? '',
+          package_breadth: p.package_breadth ?? p.breadth ?? '',
+          package_height: p.package_height ?? p.height ?? '',
+          package_weight: p.package_weight ?? p.weight ?? '',
           sku: p.sku || '', short_description: p.short_description || '', description: p.description || '', tags: p.tags || '',
           category_id: p.category_id || '', subcategory_id: p.subcategory_id || '', compare_price: p.compare_price ?? '',
           is_active: !!p.is_active, is_featured: !!p.is_featured, is_bestseller: !!p.is_bestseller, is_new: !!p.is_new,
@@ -79,6 +84,13 @@ export default function ProductForm() {
       if (form.compare_price !== '' && form.compare_price != null && Number(form.compare_price) < Number(form.price)) problems.compare_price = 'MRP should not be lower than the selling price';
       if (form.stock === '' || Number(form.stock) < 0) problems.stock = 'Enter how many are in stock (0 or more)';
     }
+
+    // Shiprocket Package Dimensions & Weight (Required)
+    if (!form.package_length || Number(form.package_length) <= 0) problems.package_length = 'Enter package length (cm)';
+    if (!form.package_breadth || Number(form.package_breadth) <= 0) problems.package_breadth = 'Enter package breadth (cm)';
+    if (!form.package_height || Number(form.package_height) <= 0) problems.package_height = 'Enter package height (cm)';
+    if (!form.package_weight || Number(form.package_weight) <= 0) problems.package_weight = 'Enter packed box weight (kg)';
+
     setErrors(problems);
     if (Object.keys(problems).length) {
       setMessage('Please fix the highlighted fields below.');
@@ -200,6 +212,95 @@ export default function ProductForm() {
                 ))}
               </div>
             )}
+          </section>
+
+          {/* Shipping & Package Dimensions for Shiprocket */}
+          <section className="card p-5 space-y-4">
+            <div>
+              <h2 className="card-title flex items-center gap-2">
+                <Package className="size-5 text-brand-700" />
+                Shipping Package Dimensions (Shiprocket)
+              </h2>
+              <p className="text-[13px] text-ink-500">
+                Outer box dimensions (L × B × H) and dead weight after packing the parcel. Required by Shiprocket to assign courier partners and calculate live shipping rates.
+              </p>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
+              <Field
+                label="Package Length (cm)"
+                type="number"
+                min="0.5"
+                step="0.1"
+                required
+                placeholder="e.g. 15"
+                value={form.package_length}
+                onChange={set('package_length')}
+                error={errors.package_length}
+                hint="Box outer length in cm"
+              />
+              <Field
+                label="Package Breadth (cm)"
+                type="number"
+                min="0.5"
+                step="0.1"
+                required
+                placeholder="e.g. 10"
+                value={form.package_breadth}
+                onChange={set('package_breadth')}
+                error={errors.package_breadth}
+                hint="Box outer width in cm"
+              />
+              <Field
+                label="Package Height (cm)"
+                type="number"
+                min="0.5"
+                step="0.1"
+                required
+                placeholder="e.g. 10"
+                value={form.package_height}
+                onChange={set('package_height')}
+                error={errors.package_height}
+                hint="Box outer height in cm"
+              />
+              <Field
+                label="Package Weight (kg)"
+                type="number"
+                min="0.01"
+                step="0.01"
+                required
+                placeholder="e.g. 0.5"
+                value={form.package_weight}
+                onChange={set('package_weight')}
+                error={errors.package_weight}
+                hint="Weight after packing (kg)"
+              />
+            </div>
+
+            {/* Shiprocket Volumetric Weight Info */}
+            {form.package_length && form.package_breadth && form.package_height ? (
+              <div className="rounded-lg bg-sand-50 p-3 text-xs text-ink-600 border border-sand-200 flex flex-wrap items-center justify-between gap-2">
+                <div>
+                  <span className="font-semibold text-ink-800">Shiprocket Volumetric Weight:</span>{' '}
+                  <span className="font-mono font-medium">
+                    {((Number(form.package_length) * Number(form.package_breadth) * Number(form.package_height)) / 5000).toFixed(2)} kg
+                  </span>
+                  <span className="text-ink-400 ml-1.5">(Formula: L × B × H / 5000)</span>
+                </div>
+                {form.package_weight ? (
+                  <div className="text-brand-800 font-medium">
+                    Billable Courier Weight:{' '}
+                    <strong>
+                      {Math.max(
+                        Number(form.package_weight) || 0,
+                        (Number(form.package_length) * Number(form.package_breadth) * Number(form.package_height)) / 5000
+                      ).toFixed(2)}{' '}
+                      kg
+                    </strong>
+                  </div>
+                ) : null}
+              </div>
+            ) : null}
           </section>
         </div>
 
