@@ -1,4 +1,4 @@
-# Ooty Originals — E-commerce Website
+# Sannara — E-commerce Website
 
 Redesign of [ootyoriginals.in](https://ootyoriginals.in/) as a custom store.
 

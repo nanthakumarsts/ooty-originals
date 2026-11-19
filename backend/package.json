@@ -2,7 +2,7 @@
   "name": "ooty-originals-backend",
   "version": "1.0.0",
   "private": true,
-  "description": "Ooty Originals e-commerce REST API (Node + Express + MySQL)",
+  "description": "Sannara e-commerce REST API (Node + Express + MySQL)",
   "main": "server.js",
   "scripts": {
     "dev": "node --watch server.js",

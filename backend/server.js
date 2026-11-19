@@ -52,7 +52,7 @@ async function start() {
   await syncAdminCredentials();
 
   const server = app.listen(config.port, () => {
-    console.log(`\nOoty Originals API running on ${config.apiUrl}`);
+    console.log(`\nSannara API running on ${config.apiUrl}`);
     console.log(`  Payments: ${config.paymentGateway === 'razorpay' ? 'Razorpay (live keys loaded)' : 'TEST gateway — add Razorpay keys to .env to take real payments'}`);
     if (!config.smtp.ready) console.log('  Email:    not set up — emails are only printed to this console. Add SMTP_USER and SMTP_PASS to .env\n');
     // signs in to the mail server so a wrong ID / app password shows up now, not on the first order
