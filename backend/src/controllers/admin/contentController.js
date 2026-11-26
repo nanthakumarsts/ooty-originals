@@ -11,6 +11,7 @@ const SETTING_KEYS = [
   'shipping_fee', 'free_shipping_min', 'cod_enabled', 'footer_note',
   'story_title', 'story_text', 'story_stat', 'story_stat_text', 'about_tagline',
   'delivery_short', 'returns_short', 'delivery_info', 'returns_info', 'newsletter_title', 'newsletter_text',
+  'allow_cancellation', 'allow_returns',
 ];
 
 /** Settings stored as JSON lists. */
@@ -59,7 +60,9 @@ async function saveSettings(req, res) {
       if (!Number.isFinite(n) || n < 0) throw new HttpError(422, 'Delivery amounts must be zero or more');
       value = String(n);
     }
-    if (key === 'cod_enabled') value = body[key] === true || body[key] === '1' ? '1' : '0';
+    if (key === 'cod_enabled' || key === 'allow_cancellation' || key === 'allow_returns') {
+      value = body[key] === true || body[key] === '1' || body[key] === 1 ? '1' : '0';
+    }
     updates.push([key, value]);
   }
   for (const [key, schema] of Object.entries(JSON_SETTINGS)) {

@@ -87,6 +87,7 @@ function luxuryLayout({ title, subtitle, badgeText, badgeTone = 'green', orderId
 
 /** Render Items Ordered Card */
 function itemsSection(items) {
+  if (!Array.isArray(items) || items.length === 0) return '';
   const rows = items.map((item) => `
     <tr>
       <td style="padding:12px 0;border-bottom:1px solid ${BORDER};vertical-align:top;">
@@ -273,12 +274,26 @@ module.exports = {
   }),
 
   orderStatus: ({ order, note }) => {
+    const isConfirmed = order.status === 'confirmed';
     const isShipped = order.status === 'shipped';
+    const isOutForDelivery = order.status === 'out_for_delivery';
     const isDelivered = order.status === 'delivered';
-    const tone = isShipped ? 'blue' : isDelivered ? 'green' : 'amber';
-    const statusTitle = isShipped ? 'Your Order Has Been Shipped' : isDelivered ? 'Your Order Has Been Delivered' : `Your Order Status: ${order.status.toUpperCase()}`;
-    const subtitle = isShipped
+    const tone = isConfirmed || isDelivered ? 'green' : isShipped || isOutForDelivery ? 'blue' : 'amber';
+    const statusTitle = isConfirmed
+      ? 'Your Order Has Been Confirmed'
+      : isShipped
+      ? 'Your Order Has Been Shipped'
+      : isOutForDelivery
+      ? 'Your Order Is Out For Delivery'
+      : isDelivered
+      ? 'Your Order Has Been Delivered'
+      : `Your Order Status: ${order.status.replace(/_/g, ' ').toUpperCase()}`;
+    const subtitle = isConfirmed
+      ? 'Great news! Your order has been confirmed by our store and is now being carefully prepared and packaged for dispatch.'
+      : isShipped
       ? 'Your parcel is on its way from the Nilgiri hills! You can follow the live delivery progress below.'
+      : isOutForDelivery
+      ? 'The courier delivery agent is out for delivery. Your parcel will reach your doorstep today!'
       : isDelivered
       ? 'Your package has been successfully delivered. We hope you enjoy the authentic taste of the hills!'
       : 'We have an update on the progress of your order.';
@@ -448,30 +463,86 @@ module.exports = {
     }),
   }),
 
-  returnApproved: ({ order, returnReq, refund }) => ({
-    subject: `Return & Refund Approved: Order ${order.order_number}`,
+  returnApproved: ({ order, returnReq }) => ({
+    subject: `Return Request Approved: Order ${order.order_number}`,
     html: luxuryLayout({
-      title: 'Return & Refund Approved',
-      subtitle: `Your return request for Order <strong>${esc(order.order_number)}</strong> has been approved!`,
-      badgeText: 'Approved & Refunded',
+      title: 'Return Request Approved',
+      subtitle: `Your return request for Order <strong>${esc(order.order_number)}</strong> has been approved by our team.`,
+      badgeText: 'Return Approved',
       badgeTone: 'green',
       orderId: order.order_number,
       content: `
         <div style="background-color:#143122;border:1px solid #235d3d;border-radius:14px;padding:18px;margin-top:14px;">
-          <h3 style="margin:0 0 6px;color:#4ade80;font-size:15px;font-weight:700;">✓ Refund Initiated: ${inr(returnReq?.refund_amount || order.total)}</h3>
+          <h3 style="margin:0 0 6px;color:#4ade80;font-size:15px;font-weight:700;">✓ Return Request Approved</h3>
           <p style="margin:0;font-size:13px;color:#cbd5e1;line-height:1.5;">
-            ${refund?.refundId ? `Razorpay Refund ID: <strong>${esc(refund.refundId)}</strong><br>` : ''}
-            The refund has been dispatched to your original payment method and will reflect in your bank account in 3–5 business days.
+            Our team has verified your proof and approved the return. We are scheduling a courier reverse pickup at your doorstep. You will receive an email confirmation with the scheduled pickup date shortly.
           </p>
-          ${returnReq.shiprocket_return_order_id ? `
-            <div style="margin-top:12px;padding-top:10px;border-top:1px solid #235d3d;font-size:13px;color:#cbd5e1;">
-              🚚 <strong>Reverse Courier Pickup:</strong> A pickup has been scheduled at your delivery address. Please keep the product securely packed.
+          ${returnReq.admin_note ? `
+            <div style="margin-top:10px;padding-top:10px;border-top:1px solid #235d3d;font-size:12.5px;color:#a7f3d0;">
+              <strong>Note from concierge:</strong> ${esc(returnReq.admin_note)}
             </div>
           ` : ''}
         </div>
-        ${itemsSection(order.items)}
-        ${priceSection(order)}
+        ${itemsSection(returnReq.items && returnReq.items.length ? returnReq.items : order.items)}
         ${actionButton('Check Order Status', orderUrl(order))}
+      `,
+    }),
+  }),
+
+  returnPickupScheduled: ({ order, returnReq, pickupDate, items }) => ({
+    subject: `Return approved · Pickup on ${pickupDate} · Order ${order.order_number}`,
+    html: luxuryLayout({
+      title: 'Return approved and pickup scheduled',
+      subtitle: `Our courier partner will visit your doorstep on <strong>${esc(pickupDate)}</strong> to collect your return package.`,
+      badgeText: 'Pickup Scheduled',
+      badgeTone: 'blue',
+      orderId: order.order_number,
+      content: `
+        <div style="background-color:#142338;border:1px solid #254668;border-radius:14px;padding:18px;margin-top:14px;">
+          <h3 style="margin:0 0 8px;color:#93c5fd;font-size:15px;font-weight:700;">📅 Scheduled Pickup Date: ${esc(pickupDate)}</h3>
+          <p style="margin:0 0 10px;font-size:13px;color:#cbd5e1;line-height:1.5;">
+            The delivery agent will arrive at your address to collect the returned item(s).
+          </p>
+          <div style="background:#0c1724;border:1px solid #1e354f;border-radius:10px;padding:12px;font-size:12.5px;color:#94a3b8;line-height:1.6;">
+            <div style="color:#f8fafc;font-weight:600;margin-bottom:4px;">Pickup Address:</div>
+            ${esc(order.ship_name || order.customer_name)}<br>
+            ${esc(order.ship_line1)}${order.ship_line2 ? `, ${esc(order.ship_line2)}` : ''}<br>
+            ${esc(order.ship_city)}, ${esc(order.ship_state)} - ${esc(order.ship_pincode)}<br>
+            Phone: ${esc(order.ship_phone)}
+          </div>
+          ${returnReq?.shiprocket_return_order_id ? `
+            <div style="margin-top:10px;font-size:12px;color:#93c5fd;">
+              Shiprocket Reverse Waybill / Return ID: <strong>#${esc(returnReq.shiprocket_return_order_id)}</strong>
+            </div>
+          ` : ''}
+          <div style="margin-top:12px;padding-top:10px;border-top:1px solid #1e354f;font-size:12.5px;color:#cbd5e1;">
+            💡 <strong>Packaging Tip:</strong> Please keep the product safely packed in its original container/box so it is ready for handover.
+          </div>
+        </div>
+        ${itemsSection(items && items.length ? items : (returnReq?.items || order.items))}
+        ${actionButton('Track Return Status', orderUrl(order))}
+      `,
+    }),
+  }),
+
+  returnRefunded: ({ order, returnReq, refundAmount, refundId, items }) => ({
+    subject: `Refund Processed: ${inr(refundAmount)} · Order ${order.order_number}`,
+    html: luxuryLayout({
+      title: 'Refund Processed',
+      subtitle: `Your returned product has been inspected and approved. A refund of <strong>${inr(refundAmount)}</strong> has been completed.`,
+      badgeText: 'Refunded',
+      badgeTone: 'green',
+      orderId: order.order_number,
+      content: `
+        <div style="background-color:#143122;border:1px solid #235d3d;border-radius:14px;padding:18px;margin-top:14px;">
+          <h3 style="margin:0 0 6px;color:#4ade80;font-size:16px;font-weight:700;">✓ Refund Credited: ${inr(refundAmount)}</h3>
+          <p style="margin:0;font-size:13px;color:#cbd5e1;line-height:1.6;">
+            ${refundId ? `Razorpay Refund ID: <strong>${esc(refundId)}</strong><br>` : ''}
+            The product amount has been credited back to your original payment method. Depending on your bank or card issuer, the funds will reflect within 3–5 business days.
+          </p>
+        </div>
+        ${itemsSection(items && items.length ? items : (returnReq?.items || order.items))}
+        ${actionButton('View Order Details', orderUrl(order))}
       `,
     }),
   }),

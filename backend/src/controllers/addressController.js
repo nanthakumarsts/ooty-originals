@@ -94,4 +94,21 @@ async function remove(req, res) {
   res.json({ addresses: await listFor(userId) });
 }
 
-module.exports = { list, create, update, setDefault, remove, schema };
+async function checkPincode(req, res) {
+  const pincode = String(req.params.pincode || req.query.pincode || '').trim();
+  if (!/^[1-9]\d{5}$/.test(pincode)) {
+    return res.json({ valid: false, serviceable: false, message: 'Enter a valid 6-digit Indian PIN code' });
+  }
+  const shiprocket = require('../services/shiprocketService');
+  try {
+    const resRate = await shiprocket.getLiveShippingRate({ deliveryPostcode: pincode, weight: 0.5 });
+    if (resRate && resRate.available) {
+      return res.json({ valid: true, serviceable: true, courierName: resRate.courierName, rate: resRate.rate, etd: resRate.etd });
+    }
+    return res.json({ valid: true, serviceable: false, message: resRate?.message || 'No courier service available for this PIN code' });
+  } catch (err) {
+    return res.json({ valid: true, serviceable: true, message: 'Courier service check unavailable' });
+  }
+}
+
+module.exports = { list, create, update, setDefault, remove, checkPincode, schema };

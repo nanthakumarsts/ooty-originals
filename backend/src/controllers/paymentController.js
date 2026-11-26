@@ -49,22 +49,54 @@ async function verify(req, res) {
     if (!paymentId || !orders.verifyRazorpaySignature(data.gatewayOrderId, paymentId, data.signature)) {
       throw new HttpError(400, 'Payment verification failed. If money was deducted it will be refunded automatically.');
     }
+    const auth = Buffer.from(config.razorpay.keyId+':'+config.razorpay.keySecret).toString('base64');
+    const response = await fetch('https://api.razorpay.com/v1/payments/'+encodeURIComponent(paymentId),{headers:{Authorization:'Basic '+auth}});
+    if (!response.ok) throw new HttpError(502,'Cannot verify capture');
+    let payment = await response.json();
+    if (payment.status === 'authorized' && !payment.captured) {
+      const capRes = await fetch('https://api.razorpay.com/v1/payments/'+encodeURIComponent(paymentId)+'/capture', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: 'Basic ' + auth },
+        body: JSON.stringify({ amount: Math.round(Number(attempt.amount) * 100), currency: 'INR' }),
+      });
+      if (capRes.ok) {
+        payment = await capRes.json();
+      }
+    }
+    if (!payment.captured || payment.id !== paymentId || payment.order_id !== data.gatewayOrderId ||
+        payment.currency !== 'INR' || payment.amount !== Math.round(Number(attempt.amount)*100))
+      throw new HttpError(409,'Payment capture pending or mismatched');
   } else {
     // Test gateway: only reachable when no live Razorpay keys are configured.
     if (config.paymentGateway !== 'mock') throw new HttpError(400, 'Payment verification failed');
     paymentId = `test_pay_${crypto.randomBytes(8).toString('hex')}`;
   }
 
-  await tx(async (run) => {
+  const order = await completeCapture(attempt,paymentId);
+  res.json({order});
+}
+
+async function completeCapture(attempt,paymentId) {
+  const changed = await tx(async run => {
+    const [locked] = await run('SELECT status,payment_status FROM orders WHERE id=? FOR UPDATE',[attempt.oid]);
+    const [payment] = await run('SELECT status,gateway_payment_id FROM payments WHERE id=? FOR UPDATE',[attempt.id]);
+    if (['paid','partially_refunded','refunded'].includes(payment.status) && payment.gateway_payment_id === paymentId) return false;
+    if (locked.status !== 'pending' || !['created','failed'].includes(payment.status))
+      throw new HttpError(409,'Capture requires reconciliation');
     await run("UPDATE payments SET status = 'paid', gateway_payment_id = ?, failure_reason = NULL WHERE id = ?", [paymentId, attempt.id]);
-    await run("UPDATE orders SET payment_status = 'paid', status = IF(status = 'pending', 'confirmed', status) WHERE id = ?", [attempt.oid]);
-    await orders.addHistory(run, attempt.oid, 'confirmed', 'Payment received');
+    await run("UPDATE orders SET payment_status = 'paid', status = IF(status = 'pending', 'placed', status) WHERE id = ?", [attempt.oid]);
+    await orders.addHistory(run, attempt.oid, 'placed', 'Payment received · Order placed');
+    return true;
   });
 
   const order = await orders.getOrder('id = ?', [attempt.oid]);
+  if (!changed) return order;
   const payment = order.payments.find((p) => p.id === attempt.id);
-  sendMail('orderConfirmation', order.customer_email, { order });
-  sendMail('paymentConfirmation', order.customer_email, { order, payment });
+  // Send order and payment confirmation emails in the background so customer response is instant
+  Promise.allSettled([
+    sendMail('orderConfirmation', order.customer_email, { order }),
+    sendMail('paymentConfirmation', order.customer_email, { order, payment }),
+  ]).catch((e) => console.error('[mail] Background confirmation send error:', e.message));
 
   // Push paid order to Shiprocket automatically in the background
   try {
@@ -82,19 +114,20 @@ async function verify(req, res) {
     console.error('Shiprocket Online init warning:', e.message);
   }
 
-  res.json({ order });
+  return order;
 }
 
 /** Records a failed or abandoned attempt so the customer and the admin can both see it. */
 async function failed(req, res) {
   const data = validate(failSchema, req.body);
   const attempt = await findAttempt(req.user.id, data.orderNumber, data.gatewayOrderId);
-  if (attempt.status !== 'paid') {
-    await q("UPDATE payments SET status = 'failed', failure_reason = ? WHERE id = ?", [data.reason || 'Payment was not completed', attempt.id]);
-    await q("UPDATE orders SET payment_status = 'failed' WHERE id = ? AND payment_status <> 'paid'", [attempt.oid]);
-    await q('INSERT INTO order_status_history (order_id, status, note) VALUES (?, ?, ?)', [attempt.oid, attempt.order_status, `Payment not completed: ${data.reason || 'the payment window was closed'}`]);
-  }
-  res.json({ order: await orders.getOrder('id = ?', [attempt.oid]) });
+  await tx(async run => {
+    const [order] = await run('SELECT status FROM orders WHERE id=? FOR UPDATE',[attempt.oid]);
+    if (order?.status !== 'pending') return;
+    const changed = await run("UPDATE payments SET status='failed',failure_reason=? WHERE id=? AND status='created'",[data.reason || 'Payment not completed',attempt.id]);
+    if (changed.affectedRows) await orders.addHistory(run,attempt.oid,'pending','Payment attempt was not completed');
+  });
+  res.json({ order: null, success: true });
 }
 
-module.exports = { config: config_, verify, failed };
+module.exports = { config: config_, verify, failed, completeCapture };

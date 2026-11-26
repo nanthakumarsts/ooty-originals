@@ -60,7 +60,7 @@ async function saveReturnAttachment(file) {
   const isVideo = file.mimetype.startsWith('video/');
 
   if (isVideo) {
-    const ext = file.mimetype.includes('mp4') ? '.mp4' : file.mimetype.includes('webm') ? '.webm' : path.extname(file.originalname) || '.mp4';
+    const ext = file.mimetype.includes('mp4') ? '.mp4' : file.mimetype.includes('webm') ? '.webm' : '.mov';
     const filename = `${Date.now()}-${crypto.randomBytes(5).toString('hex')}${ext}`;
     fs.writeFileSync(path.join(dir, filename), file.buffer);
     return {
@@ -78,16 +78,7 @@ async function saveReturnAttachment(file) {
         .webp({ quality: 84 })
         .toFile(path.join(dir, name));
     } catch {
-      // Fallback in case sharp cannot process the specific raw image format
-      const ext = path.extname(file.originalname) || '.jpg';
-      const fallbackName = `${Date.now()}-${crypto.randomBytes(5).toString('hex')}${ext}`;
-      fs.writeFileSync(path.join(dir, fallbackName), file.buffer);
-      return {
-        url: `/uploads/returns/${fallbackName}`,
-        type: 'image',
-        name: file.originalname,
-        size: file.size,
-      };
+      throw new HttpError(422, 'Unsupported or damaged return proof image');
     }
     return {
       url: `/uploads/returns/${name}`,

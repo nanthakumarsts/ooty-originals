@@ -66,12 +66,17 @@ app.use(
   })
 );
 app.use(compression());
+// Webhooks must be mounted before global express.json() so raw body buffer is preserved for HMAC verification
+app.use('/api/webhooks', require('./routes/webhooks'));
 app.use(express.json({ limit: '1mb' }));
 if (!config.isProd) app.use(morgan('dev'));
 
-app.use(
-  '/uploads',
-  express.static(config.uploadsDir, {
+const {serveProof,signProofs} = require('./middleware/returnProof');
+app.get('/uploads/returns/:name',serveProof);
+app.use(['/api/orders/:id/return','/api/admin/returns','/api/admin/orders/:id/return'],signProofs);
+for (const folder of ['products','content']) app.use(
+  '/uploads/'+folder,
+  express.static(require('path').join(config.uploadsDir,folder), {
     maxAge: config.isProd ? '1d' : 0,
     etag: true,
     lastModified: true,

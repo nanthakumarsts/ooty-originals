@@ -195,7 +195,7 @@ const DEFAULT_PROMO_CARDS = [
     image: '/uploads/products/nilgiri-black-tea-150g-1.webp',
   },
   {
-    eyebrow: 'WELCOME OOTY',
+    eyebrow: 'WELCOME TO SANNARA',
     title: 'ARTISANAL',
     title_highlight: 'CHOCOLATES',
     subtitle: 'Limits Time Offer',

@@ -1,15 +1,14 @@
 const { q } = require('../../config/db');
 
-// An order counts as a sale once it is paid, or placed as Cash on Delivery, and not cancelled.
-const SALE = "o.status <> 'cancelled' AND (o.payment_status = 'paid' OR o.payment_method = 'cod')";
+const { SALE, NET_AMOUNT } = require('../../utils/salesRevenue');
 
 async function dashboard(req, res) {
   const days = [7, 30, 90].includes(Number(req.query.days)) ? Number(req.query.days) : 30;
 
   const [[totals], [previous], [counts], daily, topProducts, lowStock] = await Promise.all([
-    q(`SELECT COALESCE(SUM(o.total), 0) AS revenue, COUNT(*) AS orders FROM orders o WHERE ${SALE} AND o.created_at >= DATE_SUB(CURDATE(), INTERVAL ? DAY)`, [days - 1]),
+    q(`SELECT COALESCE(SUM(${NET_AMOUNT}), 0) AS revenue, COUNT(*) AS orders FROM orders o WHERE ${SALE} AND o.created_at >= DATE_SUB(CURDATE(), INTERVAL ? DAY)`, [days - 1]),
     q(
-      `SELECT COALESCE(SUM(o.total), 0) AS revenue, COUNT(*) AS orders FROM orders o
+      `SELECT COALESCE(SUM(${NET_AMOUNT}), 0) AS revenue, COUNT(*) AS orders FROM orders o
         WHERE ${SALE} AND o.created_at >= DATE_SUB(CURDATE(), INTERVAL ? DAY) AND o.created_at < DATE_SUB(CURDATE(), INTERVAL ? DAY)`,
       [days * 2 - 1, days - 1]
     ),
@@ -18,12 +17,12 @@ async function dashboard(req, res) {
               (SELECT COUNT(*) FROM users WHERE role = 'customer' AND created_at >= DATE_SUB(CURDATE(), INTERVAL ? DAY)) AS new_customers,
               (SELECT COUNT(*) FROM products WHERE is_active = 1) AS products,
               (SELECT COUNT(*) FROM products WHERE is_active = 1 AND stock <= 0) AS out_of_stock,
-              (SELECT COUNT(*) FROM orders WHERE status IN ('confirmed', 'processing')) AS to_fulfil,
+              (SELECT COUNT(*) FROM orders WHERE status IN ('placed', 'confirmed', 'processing')) AS to_fulfil,
               (SELECT COUNT(*) FROM contact_messages WHERE is_read = 0) AS unread_messages`,
       [days - 1]
     ),
     q(
-      `SELECT DATE_FORMAT(o.created_at, '%Y-%m-%d') AS day, COALESCE(SUM(o.total), 0) AS revenue, COUNT(*) AS orders
+      `SELECT DATE_FORMAT(o.created_at, '%Y-%m-%d') AS day, COALESCE(SUM(${NET_AMOUNT}), 0) AS revenue, COUNT(*) AS orders
          FROM orders o WHERE ${SALE} AND o.created_at >= DATE_SUB(CURDATE(), INTERVAL ? DAY)
         GROUP BY day ORDER BY day`,
       [days - 1]
@@ -69,7 +68,7 @@ async function dashboard(req, res) {
 /** Small counts for the admin panel's menu badges. */
 async function summary(req, res) {
   const [row] = await q(
-    `SELECT (SELECT COUNT(*) FROM orders WHERE status IN ('confirmed', 'processing')) AS to_fulfil,
+    `SELECT (SELECT COUNT(*) FROM orders WHERE status IN ('placed', 'confirmed', 'processing')) AS to_fulfil,
             (SELECT COUNT(*) FROM contact_messages WHERE is_read = 0) AS unread_messages,
             (SELECT COUNT(*) FROM products WHERE is_active = 1 AND stock <= 0) AS out_of_stock,
             (SELECT COUNT(*) FROM return_requests WHERE status = 'pending') AS pending_returns`

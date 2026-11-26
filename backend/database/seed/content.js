@@ -15,7 +15,7 @@ const faqs = [
   { q: 'Do you offer refunds?', a: 'Yes. Once we receive and inspect a returned product, the refund is issued to your original payment method, usually within 7 business days. Shipping charges are non-refundable.' },
   { q: 'What if I receive a damaged product?', a: 'Please contact us right away with your order number and a photo of the item. We will arrange a replacement or a refund, whichever you prefer.' },
   { q: 'Do you ship internationally?', a: 'Not yet — we currently deliver across India only. International shipping is something we are working on.' },
-  { q: 'How can I contact customer support?', a: 'Email hi@ootyoriginals.in or message us on WhatsApp at +91 94876 54990. We are available Monday to Friday 9 am – 8 pm and Saturday 11 am – 3 pm.' },
+  { q: 'How can I contact customer support?', a: 'Email hi@sannara.in or message us on WhatsApp at +91 94876 54990. We are available Monday to Friday 9 am – 8 pm and Saturday 11 am – 3 pm.' },
 ];
 
 const settings = {
@@ -26,12 +26,12 @@ const settings = {
   hero_image: '',
   contact_phone: '+91 94876 54990',
   contact_whatsapp: '919487654990',
-  contact_email: 'hi@ootyoriginals.in',
+  contact_email: 'hi@sannara.in',
   contact_address: ADDRESS,
   business_hours: 'Mon – Fri: 9:00 am – 8:00 pm · Sat: 11:00 am – 3:00 pm',
-  social_facebook: 'https://www.facebook.com/ootyoriginals',
-  social_instagram: 'https://www.instagram.com/ootyoriginals',
-  social_youtube: 'https://www.youtube.com/@OotyOriginals',
+  social_facebook: 'https://www.facebook.com/sannara',
+  social_instagram: 'https://www.instagram.com/sannara',
+  social_youtube: 'https://www.youtube.com/@Sannara',
   shipping_fee: '0',
   free_shipping_min: '0',
   cod_enabled: '1',
@@ -110,9 +110,9 @@ const pages = [
 <h2>Cookies and local storage</h2>
 <p>We use your browser’s local storage to keep you signed in and to remember your cart and compare list. We do not use advertising trackers.</p>
 <h2>Your choices</h2>
-<p>You can view and update your details and addresses any time from My Account. To delete your account or request a copy of your data, write to us at hi@ootyoriginals.in.</p>
+<p>You can view and update your details and addresses any time from My Account. To delete your account or request a copy of your data, write to us at hi@sannara.in.</p>
 <h2>Contact</h2>
-<p>${ADDRESS}<br>Email: hi@ootyoriginals.in</p>`,
+<p>${ADDRESS}<br>Email: hi@sannara.in</p>`,
   },
   {
     slug: 'terms-and-conditions',
@@ -141,7 +141,7 @@ const pages = [
 <h2>Governing law</h2>
 <p>These terms are governed by the laws of India. Disputes are subject to the courts of The Nilgiris, Tamil Nadu.</p>
 <h2>Contact</h2>
-<p>${ADDRESS}<br>Email: hi@ootyoriginals.in</p>`,
+<p>${ADDRESS}<br>Email: hi@sannara.in</p>`,
   },
   {
     slug: 'refund-policy',
@@ -167,7 +167,7 @@ const pages = [
 <p>${ADDRESS}</p>
 <p>We recommend a trackable shipping service for returns.</p>
 <h2>Need help?</h2>
-<p>Email hi@ootyoriginals.in or WhatsApp +91 94876 54990.</p>`,
+<p>Email hi@sannara.in or WhatsApp +91 94876 54990.</p>`,
   },
 ];
 

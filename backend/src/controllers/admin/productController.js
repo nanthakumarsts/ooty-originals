@@ -1,3 +1,4 @@
+const { cleanProductDescription } = require('../../utils/productDescription');
 const { z } = require('zod');
 const { q, tx } = require('../../config/db');
 const { HttpError, validate } = require('../../middleware/error');
@@ -37,9 +38,14 @@ const productSchema = z.object({
       z.object({
         id: z.coerce.number().int().positive().optional(),
         label: z.string().trim().min(1, 'Every option needs a name').max(80),
+        sku: z.string().trim().max(80).nullish(),
         price: money,
         compare_price: optionalMoney,
         stock: z.coerce.number().int().min(0).max(1000000).default(0),
+        package_weight: optionalDimension,
+        package_length: optionalDimension,
+        package_breadth: optionalDimension,
+        package_height: optionalDimension,
       })
     )
     .max(30)
@@ -87,7 +93,7 @@ async function detail(req, res) {
   if (!product) throw new HttpError(404, 'Product not found');
   const [images, variants] = await Promise.all([
     q('SELECT url FROM product_images WHERE product_id = ? ORDER BY sort_order, id', [product.id]),
-    q('SELECT id, label, price, compare_price, stock FROM product_variants WHERE product_id = ? ORDER BY sort_order, id', [product.id]),
+    q('SELECT id, label, sku, price, compare_price, stock, package_weight, package_length, package_breadth, package_height FROM product_variants WHERE product_id = ? ORDER BY sort_order, id', [product.id]),
   ]);
   res.json({
     product: { ...product, specifications: parseJSON(product.specifications, []), images: images.map((i) => i.url), variants },
@@ -112,7 +118,7 @@ async function save(req, res) {
   const stock = hasVariants ? d.variants.reduce((sum, v) => sum + v.stock, 0) : d.stock;
 
   const fields = [
-    d.category_id, d.subcategory_id, d.name, slug, d.sku || null, d.short_description || null, cleanHtml(d.description) || null,
+    d.category_id, d.subcategory_id, d.name, slug, d.sku || null, d.short_description || null, cleanProductDescription(cleanHtml(d.description)) || null,
     JSON.stringify(d.specifications), d.tags || null,
     d.package_length ?? null, d.package_breadth ?? null, d.package_height ?? null, d.package_weight ?? null,
     price, comparePrice, stock,
@@ -149,9 +155,18 @@ async function save(req, res) {
     await run(`DELETE FROM product_variants WHERE product_id = ?${keep.length ? ' AND id NOT IN (?)' : ''}`, keep.length ? [pid, keep] : [pid]);
     for (const [index, v] of d.variants.entries()) {
       if (v.id) {
-        await run('UPDATE product_variants SET label = ?, price = ?, compare_price = ?, stock = ?, sort_order = ? WHERE id = ? AND product_id = ?', [v.label, v.price, v.compare_price, v.stock, index, v.id, pid]);
+        await run(
+          `UPDATE product_variants SET label = ?, sku = ?, price = ?, compare_price = ?, stock = ?,
+             package_weight = ?, package_length = ?, package_breadth = ?, package_height = ?, sort_order = ?
+           WHERE id = ? AND product_id = ?`,
+          [v.label, v.sku || null, v.price, v.compare_price, v.stock, v.package_weight ?? null, v.package_length ?? null, v.package_breadth ?? null, v.package_height ?? null, index, v.id, pid]
+        );
       } else {
-        await run('INSERT INTO product_variants (product_id, label, price, compare_price, stock, sort_order) VALUES (?, ?, ?, ?, ?, ?)', [pid, v.label, v.price, v.compare_price, v.stock, index]);
+        await run(
+          `INSERT INTO product_variants (product_id, label, sku, price, compare_price, stock, package_weight, package_length, package_breadth, package_height, sort_order)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+          [pid, v.label, v.sku || null, v.price, v.compare_price, v.stock, v.package_weight ?? null, v.package_length ?? null, v.package_breadth ?? null, v.package_height ?? null, index]
+        );
       }
     }
     return pid;

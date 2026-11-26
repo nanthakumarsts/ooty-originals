@@ -1,11 +1,12 @@
 import { NavLink, Outlet, useNavigate } from 'react-router-dom';
-import { KeyRound, LogOut, MapPin, Package, User } from 'lucide-react';
+import { KeyRound, LogOut, MapPin, Package, Star, User } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { cx } from '../../components/ui';
 
 const LINKS = [
   { to: '/account', label: 'Profile', icon: User, end: true },
   { to: '/account/orders', label: 'My orders', icon: Package },
+  { to: '/account/reviews', label: 'Reviews', icon: Star },
   { to: '/account/addresses', label: 'Addresses', icon: MapPin },
   { to: '/account/password', label: 'Password', icon: KeyRound },
 ];

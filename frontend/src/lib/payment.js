@@ -45,11 +45,23 @@ export async function payWithRazorpay({ order, payment, user }) {
       handler: (response) => {
         confirm(order.order_number, payment, { paymentId: response.razorpay_payment_id, signature: response.razorpay_signature })
           .then((d) => resolve(d.order))
-          .catch(reject);
+          .catch(async (err) => {
+            // Fallback check: if the verify request suffered a timeout or network glitch,
+            // query the order to see if it was already marked paid by the backend or webhook.
+            try {
+              const check = await api.get(`/orders/${order.order_number}`);
+              if (check?.order?.payment_status === 'paid') {
+                return resolve(check.order);
+              }
+            } catch {}
+            reject(err);
+          });
       },
       modal: {
         ondismiss: () => {
-          reportFailure(order.order_number, payment, lastError).then((d) => resolve(d.order)).catch(reject);
+          reportFailure(order.order_number, payment, lastError)
+            .then((d) => resolve(d?.order || { payment_status: 'failed' }))
+            .catch(() => resolve({ payment_status: 'failed' }));
         },
       },
     });

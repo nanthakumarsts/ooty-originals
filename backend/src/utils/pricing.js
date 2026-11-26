@@ -1,8 +1,22 @@
 const { round2 } = require('./helpers');
 const config = require('../config/env');
 const shiprocket = require('../services/shiprocketService');
+const { calculatePackage, extractWeightInKg } = require('./shippingPackage');
 
 const MAX_QTY = 20;
+
+async function quoteOrderShipping(parcel, merchandiseTotal, freeShipping) {
+  let declaredValue = merchandiseTotal;
+  // Coverage and COD fees can change when shipping moves the order into a higher value band.
+  for (let attempt = 0; attempt < 8; attempt++) {
+    const quote = await shiprocket.getLiveShippingRate({ ...parcel, declaredValue });
+    if (!quote?.available || quote.rate == null || freeShipping) return quote;
+    const orderTotal = round2(merchandiseTotal + quote.rate);
+    if (orderTotal === declaredValue) return quote;
+    declaredValue = orderTotal;
+  }
+  return { available: false, message: 'Unable to confirm the delivery charge. Please try again.' };
+}
 
 /**
  * Check a coupon against a subtotal. Returns { coupon, discount } or { error }.
@@ -55,6 +69,7 @@ async function buildQuote(run, rawItems, couponCode, lock = false, userId = null
   const suffix = lock ? ' FOR UPDATE' : '';
   const products = await run(
     `SELECT p.id, p.name, p.slug, p.price, p.compare_price, p.stock, p.is_active,
+            p.package_length, p.package_breadth, p.package_height, p.package_weight,
             (SELECT url FROM product_images WHERE product_id = p.id ORDER BY sort_order, id LIMIT 1) AS image
        FROM products p WHERE p.id IN (?)${suffix}`,
     [ids]
@@ -99,6 +114,11 @@ async function buildQuote(run, rawItems, couponCode, lock = false, userId = null
       slug: product.slug,
       image: product.image,
       variantLabel: variant ? variant.label : null,
+      sku: (variant && variant.sku) ? variant.sku : product.sku,
+      packageLength: (variant && Number(variant.package_length) > 0) ? variant.package_length : product.package_length,
+      packageBreadth: (variant && Number(variant.package_breadth) > 0) ? variant.package_breadth : product.package_breadth,
+      packageHeight: (variant && Number(variant.package_height) > 0) ? variant.package_height : product.package_height,
+      packageWeight: (variant && Number(variant.package_weight) > 0) ? variant.package_weight : product.package_weight,
       price,
       comparePrice: comparePrice && Number(comparePrice) > price ? Number(comparePrice) : null,
       quantity,
@@ -122,36 +142,45 @@ async function buildQuote(run, rawItems, couponCode, lock = false, userId = null
   const { pincode = null, paymentMethod = 'online', country = 'India' } = (typeof shippingOptions === 'object' && shippingOptions !== null) ? shippingOptions : {};
   const isDomestic = !country || String(country).toLowerCase() === 'india';
 
+  const pkg = calculatePackage(items);
+
   if (isDomestic && pincode && /^\d{6}$/.test(String(pincode).trim())) {
-    const totalUnits = items.reduce((sum, i) => sum + (i.quantity || 1), 0);
-    const estWeight = Math.max(0.5, Math.round(totalUnits * 0.3 * 10) / 10);
     const isCod = paymentMethod === 'cod';
 
-    const srRate = await shiprocket.getLiveShippingRate({
+    const freeShipping = freeFrom > 0 && afterDiscount >= freeFrom;
+    const srRate = await quoteOrderShipping({
       pickupPostcode: 641104,
       deliveryPostcode: pincode,
-      weight: estWeight,
+      weight: pkg.weight,
+      length: pkg.length,
+      breadth: pkg.breadth,
+      height: pkg.height,
       cod: isCod ? 1 : 0,
-    });
+    }, round2(afterDiscount), freeShipping);
 
     if (srRate && srRate.available && srRate.rate != null) {
-      if (freeFrom > 0 && afterDiscount >= freeFrom) {
+      if (freeShipping) {
         shipping = 0;
         shippingDetails = {
           ...srRate,
           freeShippingApplied: true,
           originalRate: srRate.rate,
+          package: pkg,
         };
       } else {
         shipping = srRate.rate;
-        shippingDetails = srRate;
+        shippingDetails = {
+          ...srRate,
+          package: pkg,
+        };
       }
     } else if (srRate && !srRate.available) {
-      shipping = fee;
+      shipping = 0;
       shippingDetails = {
         available: false,
-        message: srRate.message,
+        message: srRate.message || `No courier service available for PIN code ${pincode}`,
         source: 'fallback',
+        package: pkg,
       };
     } else {
       shipping = !items.length || fee <= 0 || (freeFrom > 0 && afterDiscount >= freeFrom) ? 0 : fee;
@@ -166,6 +195,7 @@ async function buildQuote(run, rawItems, couponCode, lock = false, userId = null
       rate: shipping,
       courierName: 'International Air Courier',
       source: 'international',
+      package: pkg,
     };
   } else {
     shipping = !items.length || fee <= 0 || (freeFrom > 0 && afterDiscount >= freeFrom) ? 0 : fee;
@@ -177,6 +207,8 @@ async function buildQuote(run, rawItems, couponCode, lock = false, userId = null
     discount,
     shipping,
     shippingDetails,
+    isServiceable: shippingDetails ? shippingDetails.available !== false : true,
+    package: pkg,
     total: round2(afterDiscount + shipping),
     coupon,
     couponError: error,
@@ -187,4 +219,4 @@ async function buildQuote(run, rawItems, couponCode, lock = false, userId = null
   };
 }
 
-module.exports = { buildQuote, applyCoupon, MAX_QTY };
+module.exports = { buildQuote, applyCoupon, calculatePackage, extractWeightInKg, MAX_QTY };

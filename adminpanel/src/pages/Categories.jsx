@@ -251,13 +251,9 @@ export default function Categories() {
       <Modal open={!!editing} onClose={() => setEditing(null)} title={editing?.id ? 'Edit category' : form.parent_id ? 'Add sub-category' : 'Add category'} wide>
         <form onSubmit={submit} noValidate className="space-y-4">
           {message && !Object.keys(errors).length && <Alert>{message}</Alert>}
-          <div className="grid gap-4 sm:grid-cols-2">
-            <Field label="Name" required autoFocus value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} error={errors.name} />
-            <Field label="Belongs to" as="select" value={form.parent_id} onChange={(e) => setForm({ ...form, parent_id: e.target.value })} error={errors.parent_id} hint="Leave as “Top level” for a main category.">
-              <option value="">Top level</option>
-              {parents.filter((p) => p.id !== editing?.id).map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}
-            </Field>
-          </div>
+          {form.parent_id && <p className="text-sm text-ink-500">Sub-category under <strong>{parents.find((p) => String(p.id) === String(form.parent_id))?.name}</strong></p>}
+          {errors.parent_id && <Alert>{errors.parent_id}</Alert>}
+          <Field label="Name" required autoFocus value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} error={errors.name} />
           <Field label="Description" as="textarea" rows={2} maxLength={500} value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} error={errors.description} hint="Shown under the category title in the shop." />
           <div className="grid gap-4 sm:grid-cols-2">
             <div>

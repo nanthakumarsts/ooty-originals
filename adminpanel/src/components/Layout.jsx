@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { Link, NavLink, useLocation, useNavigate } from 'react-router-dom';
-import { BarChart3, ChevronDown, FileText, FolderTree, Images, Inbox, LayoutDashboard, LogOut, Menu, Package, RotateCcw, Settings2, ShoppingCart, Tag, UserCog, Users, X } from 'lucide-react';
+import { BarChart3, ChevronDown, FileText, FolderTree, Images, Inbox, LayoutDashboard, LogOut, Menu, Star, Package, RotateCcw, Settings2, ShoppingCart, Tag, UserCog, Users, X } from 'lucide-react';
 import api from '../lib/api';
 import { useApp } from '../context/AppContext';
 import { cx } from './ui';
@@ -30,6 +30,7 @@ const NAV = [
       { to: '/content/banners', label: 'Home banners', icon: Images },
       { to: '/content/settings', label: 'Site settings', icon: Settings2 },
       { to: '/content/pages', label: 'Pages', icon: FileText },
+      { to: '/reviews', label: 'Product reviews', icon: Star },
       { to: '/messages', label: 'Messages', icon: Inbox, badge: 'unread_messages' },
     ],
   },

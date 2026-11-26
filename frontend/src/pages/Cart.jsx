@@ -1,6 +1,5 @@
-import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowRight, ShoppingBag, Trash2, Truck } from 'lucide-react';
+import { ArrowRight, ShoppingBag, Trash2 } from 'lucide-react';
 import { img, inr } from '../lib/format';
 import { useShop } from '../context/ShopContext';
 import useQuote from '../hooks/useQuote';
@@ -12,9 +11,7 @@ import { CartSkeleton } from '../components/Skeletons';
 export default function Cart() {
   usePageTitle('Cart');
   const { cart, setQuantity, removeFromCart } = useShop();
-  const [pincodeInput, setPincodeInput] = useState('');
-  const [deliveryPincode, setDeliveryPincode] = useState('');
-  const { quote, loading, error } = useQuote(null, { pincode: deliveryPincode });
+  const { quote, loading, error } = useQuote(null);
 
   if (!cart.length) {
     return (
@@ -72,43 +69,6 @@ export default function Cart() {
             <h2 className="text-2xl font-medium">Summary</h2>
             <div className="mt-5"><CouponBox quote={quote} /></div>
 
-            {/* Pincode estimation widget */}
-            <div className="mt-5 rounded-2xl border border-sand-200 bg-sand-50/70 p-3.5">
-              <label htmlFor="pincode-calc" className="flex items-center gap-1.5 text-xs font-semibold text-ink-700 mb-2">
-                <Truck className="size-3.5 text-brand-600" aria-hidden />
-                Estimate Shiprocket delivery
-              </label>
-              <form
-                onSubmit={(e) => {
-                  e.preventDefault();
-                  if (/^\d{6}$/.test(pincodeInput)) setDeliveryPincode(pincodeInput);
-                }}
-                className="flex gap-2"
-              >
-                <input
-                  id="pincode-calc"
-                  type="text"
-                  maxLength={6}
-                  placeholder="Enter 6-digit Pincode"
-                  value={pincodeInput}
-                  onChange={(e) => setPincodeInput(e.target.value.replace(/\D/g, ''))}
-                  className="input input-sm flex-1 text-xs"
-                />
-                <button
-                  type="submit"
-                  disabled={pincodeInput.length !== 6}
-                  className="btn btn-outline btn-sm text-xs font-medium shrink-0"
-                >
-                  Check
-                </button>
-              </form>
-              {quote?.shippingDetails?.rate != null && (
-                <div className="mt-2.5 rounded-lg bg-white/80 p-2 text-xs text-brand-900 border border-brand-200/60 font-medium">
-                  Delivery charge: <strong>{inr(quote.shipping)}</strong>
-                </div>
-              )}
-            </div>
-
             <OrderSummary
               className="mt-6"
               subtotal={quote.subtotal}
@@ -118,6 +78,7 @@ export default function Cart() {
               total={quote.total}
               itemCount={quote.items.length}
               shippingDetails={quote.shippingDetails}
+              isCart
             />
             {quote.hasIssues && <Alert tone="warn" className="mt-5">Some items need your attention before you can check out.</Alert>}
             {quote.hasIssues ? (
@@ -139,7 +100,9 @@ export default function Cart() {
           <div className="mx-auto flex max-w-lg items-center gap-4">
             <div className="min-w-0">
               <p className="text-xs text-ink-500">Total · {quote.items.length} {quote.items.length === 1 ? 'item' : 'items'}</p>
-              <p className="font-display text-xl leading-tight font-medium tabular-nums">{inr(quote.total)}</p>
+              <p className="font-display text-xl leading-tight font-medium tabular-nums">
+                {inr(Math.max(0, Number(quote.subtotal || 0) - Number(quote.discount || 0)))}
+              </p>
             </div>
             {quote.hasIssues ? (
               <Button className="flex-1" disabled>Checkout</Button>

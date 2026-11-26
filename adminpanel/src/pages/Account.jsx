@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import api from '../lib/api';
 import { useApp } from '../context/AppContext';
-import { Alert, Button, Field, PageHeader, usePageTitle } from '../components/ui';
+import { Button, Field, PageHeader, usePageTitle } from '../components/ui';
 
 function ProfileCard() {
   const { admin, setAdmin, toast } = useApp();
@@ -39,59 +39,13 @@ function ProfileCard() {
   );
 }
 
-function PasswordCard() {
-  const { toast } = useApp();
-  const empty = { currentPassword: '', newPassword: '', confirm: '' };
-  const [form, setForm] = useState(empty);
-  const [errors, setErrors] = useState({});
-  const [message, setMessage] = useState('');
-  const [busy, setBusy] = useState(false);
-  const set = (key) => (e) => setForm({ ...form, [key]: e.target.value });
-
-  const submit = async (e) => {
-    e.preventDefault();
-    setMessage('');
-    const problems = {};
-    if (!form.currentPassword) problems.currentPassword = 'Enter your current password';
-    if (form.newPassword.length < 8) problems.newPassword = 'Use at least 8 characters';
-    else if (!/[A-Za-z]/.test(form.newPassword) || !/\d/.test(form.newPassword)) problems.newPassword = 'Use at least one letter and one number';
-    if (form.newPassword !== form.confirm) problems.confirm = 'Passwords do not match';
-    if (Object.keys(problems).length) return setErrors(problems);
-    setBusy(true);
-    setErrors({});
-    try {
-      await api.put('/auth/password', { currentPassword: form.currentPassword, newPassword: form.newPassword });
-      setForm(empty);
-      toast.success('Password updated');
-    } catch (err) {
-      setErrors(err.fields || {});
-      setMessage(err.message);
-    } finally {
-      setBusy(false);
-    }
-    return undefined;
-  };
-
-  return (
-    <form onSubmit={submit} noValidate className="card space-y-4 p-5">
-      <h2 className="card-title">Change password</h2>
-      {message && !Object.keys(errors).length && <Alert>{message}</Alert>}
-      <Field label="Current password" type="password" required autoComplete="current-password" value={form.currentPassword} onChange={set('currentPassword')} error={errors.currentPassword} />
-      <Field label="New password" type="password" required autoComplete="new-password" value={form.newPassword} onChange={set('newPassword')} error={errors.newPassword} hint="At least 8 characters, with a letter and a number." />
-      <Field label="Confirm new password" type="password" required autoComplete="new-password" value={form.confirm} onChange={set('confirm')} error={errors.confirm} />
-      <Button type="submit" loading={busy}>Update password</Button>
-    </form>
-  );
-}
-
 export default function Account() {
   usePageTitle('My account');
   return (
     <>
-      <PageHeader title="My account" description="Your administrator profile and password." />
-      <div className="grid items-start gap-5 lg:grid-cols-2">
+      <PageHeader title="My account" description="Your administrator profile." />
+      <div className="max-w-xl">
         <ProfileCard />
-        <PasswordCard />
       </div>
     </>
   );

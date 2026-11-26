@@ -8,7 +8,7 @@ export const inr = (amount) => rupee.format(Number(amount) || 0);
 export const img = (path) => {
   if (!path) return '/images/placeholder.svg';
   const url = path.startsWith('/uploads') ? `${API_URL}${path}` : path;
-  return url.includes('?') ? url : `${url}?v=2`;
+  return url.includes('?') ? url : `${url}?v=5`;
 };
 
 /** Product and category photos stay centred. */
@@ -25,13 +25,16 @@ export const formatDate = (value, withTime = false) =>
 export const discountPercent = (price, compare) => (compare && compare > price ? Math.round(((compare - price) / compare) * 100) : 0);
 
 export const ORDER_STATUS = {
-  pending: { label: 'Awaiting payment', tone: 'amber' },
+  pending: { label: 'Pending', tone: 'amber' },
+  placed: { label: 'Order placed', tone: 'emerald' },
   confirmed: { label: 'Confirmed', tone: 'blue' },
-  processing: { label: 'Packing', tone: 'blue' },
   shipped: { label: 'Shipped', tone: 'violet' },
+  out_for_delivery: { label: 'Out for delivery', tone: 'amber' },
   delivered: { label: 'Delivered', tone: 'green' },
+  cancellation_requested: { label: 'Cancellation Requested', tone: 'amber' },
   cancelled: { label: 'Cancelled', tone: 'red' },
   returned: { label: 'Returned', tone: 'red' },
+  processing: { label: 'Processing', tone: 'blue' },
 };
 
 export const PAYMENT_STATUS = {
@@ -39,6 +42,20 @@ export const PAYMENT_STATUS = {
   paid: { label: 'Paid', tone: 'green' },
   failed: { label: 'Payment failed', tone: 'red' },
   refunded: { label: 'Refunded', tone: 'gray' },
+  partially_refunded: { label: 'Partially refunded', tone: 'amber' },
+};
+
+export const RETURN_STATUS = {
+  pending: { label: 'Under review', tone: 'amber' },
+  approved: { label: 'Under review', tone: 'amber' },
+  pickup_scheduled: { label: 'Approved · Pickup scheduled', tone: 'violet' },
+  received: { label: 'Item under inspection', tone: 'amber' },
+  refund_processing: { label: 'Processing refund', tone: 'amber' },
+  refund_initiated: { label: 'Refund initiated', tone: 'blue' },
+  refunded: { label: 'Refund completed', tone: 'green' },
+  refund_failed: { label: 'Refund failed', tone: 'red' },
+  rejected: { label: 'Declined', tone: 'red' },
+  cancelled: { label: 'Cancelled by customer', tone: 'gray' },
 };
 
 export const INDIAN_STATES = [

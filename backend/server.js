@@ -1,41 +1,9 @@
 const app = require('./src/app');
 const config = require('./src/config/env');
-const { pool, q } = require('./src/config/db');
+const { pool } = require('./src/config/db');
 const { expireUnpaidOrders } = require('./src/services/orderService');
 const { checkMail } = require('./src/utils/mailer');
-const bcrypt = require('bcryptjs');
-
-async function syncAdminCredentials() {
-  if (!config.admin?.email || !config.admin?.password) return;
-  const adminEmail = config.admin.email.trim().toLowerCase();
-  const adminPass = config.admin.password;
-  const adminName = config.admin.name || 'Store Admin';
-
-  try {
-    const [admin] = await q("SELECT id, email, password_hash FROM users WHERE role = 'admin' ORDER BY id ASC LIMIT 1");
-    if (!admin) {
-      const hash = await bcrypt.hash(adminPass, 11);
-      await q("INSERT INTO users (name, email, phone, password_hash, role) VALUES (?, ?, '9487654990', ?, 'admin')", [
-        adminName, adminEmail, hash,
-      ]);
-      console.log(`  Admin:    created ${adminEmail} from .env`);
-    } else {
-      const matches = await bcrypt.compare(adminPass, admin.password_hash);
-      const emailChanged = admin.email.toLowerCase() !== adminEmail;
-      if (!matches || emailChanged) {
-        const newHash = await bcrypt.hash(adminPass, 11);
-        await q('UPDATE users SET email = ?, name = ?, password_hash = ? WHERE id = ?', [
-          adminEmail, adminName, newHash, admin.id,
-        ]);
-        console.log(`  Admin:    credentials synced from .env (${adminEmail})`);
-      } else {
-        console.log(`  Admin:    synced with .env (${adminEmail})`);
-      }
-    }
-  } catch (err) {
-    console.error('  Admin:    sync warning:', err.message);
-  }
-}
+const { syncConfiguredAdmin } = require('./src/services/configuredAdmin');
 
 async function start() {
   try {
@@ -48,8 +16,7 @@ async function start() {
     process.exit(1);
   }
 
-  // Ensure admin credentials from .env are automatically reflected in the database
-  await syncAdminCredentials();
+  await syncConfiguredAdmin(config.admin);
 
   const server = app.listen(config.port, () => {
     console.log(`\nSannara API running on ${config.apiUrl}`);
@@ -69,4 +36,7 @@ async function start() {
   process.on('SIGTERM', shutdown);
 }
 
-start();
+start().catch(err => {
+  console.error('API startup failed:', err.code || err.name, err.message?.startsWith('ADMIN_EMAIL') ? err.message : '');
+  process.exit(1);
+});

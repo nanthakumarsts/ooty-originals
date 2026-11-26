@@ -31,12 +31,18 @@ router.post('/addresses', requireAuth, address.create);
 router.put('/addresses/:id', requireAuth, address.update);
 router.patch('/addresses/:id/default', requireAuth, address.setDefault);
 router.delete('/addresses/:id', requireAuth, address.remove);
+router.get('/pincode/check/:pincode', address.checkPincode);
 
 // ---- Catalogue ----
 router.get('/categories', catalog.categories);
 router.get('/products', catalog.products);
 router.get('/products/compare', catalog.compare);
 router.get('/products/:slug', catalog.productDetail);
+
+const reviews = require('../controllers/reviewController');
+router.get('/products/:id/reviews', reviews.list);
+router.get('/account/reviews', requireAuth, reviews.mine);
+router.post('/products/:id/reviews', requireAuth, limits.form, reviews.submit);
 
 // ---- Cart & checkout ----
 router.post('/cart/quote', limits.quote, optionalAuth, cart.quote);

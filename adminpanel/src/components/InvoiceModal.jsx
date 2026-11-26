@@ -54,7 +54,7 @@ export default function InvoiceModal({ order, open, onClose }) {
                 <strong>Herdsmen Business Ventures Pvt. Ltd.</strong><br />
                 10, YBA Building, Church Hill Road,<br />
                 Ooty, The Nilgiris, Tamil Nadu – 643001<br />
-                Email: hi@ootyoriginals.in · Phone: +91 94876 54990
+                Email: hi@sannara.in · Phone: +91 94876 54990
               </p>
             </div>
 
@@ -95,9 +95,22 @@ export default function InvoiceModal({ order, open, onClose }) {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 py-6 border-b border-sand-200 text-xs">
             <div>
               <p className="font-bold uppercase tracking-wider text-ink-400 mb-1.5">Billed To</p>
-              <p className="font-semibold text-sm text-ink-900">{order.customer_name}</p>
-              <p className="text-ink-600 mt-0.5">{order.customer_email}</p>
-              <p className="text-ink-600">Phone: {order.ship_phone}</p>
+              <p className="font-semibold text-sm text-ink-900">{order.bill_name || order.customer_name}</p>
+              <p className="text-ink-600 mt-0.5 leading-relaxed">
+                {order.bill_line1 ? (
+                  <>
+                    {order.bill_line1}{order.bill_line2 ? `, ${order.bill_line2}` : ''}<br />
+                    {order.bill_city}, {order.bill_state} – {order.bill_pincode}{order.bill_country ? `, ${order.bill_country}` : ''}
+                  </>
+                ) : (
+                  <>
+                    {order.ship_line1}{order.ship_line2 ? `, ${order.ship_line2}` : ''}<br />
+                    {order.ship_city}, {order.ship_state} – {order.ship_pincode}{order.ship_country ? `, ${order.ship_country}` : ''}
+                  </>
+                )}
+              </p>
+              <p className="text-ink-600 mt-0.5">Phone: {order.bill_phone || order.ship_phone}</p>
+              {(order.bill_email || order.customer_email) && <p className="text-ink-600">{order.bill_email || order.customer_email}</p>}
             </div>
             <div>
               <p className="font-bold uppercase tracking-wider text-ink-400 mb-1.5">Shipped / Delivered To</p>

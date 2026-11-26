@@ -22,7 +22,7 @@ function mailSettings() {
     secure: env.SMTP_SECURE ? env.SMTP_SECURE === 'true' : port === 465,
     user,
     pass,
-    from: (env.MAIL_FROM || '').trim() || `"${name}" <${user || 'hi@ootyoriginals.in'}>`,
+    from: (env.MAIL_FROM || '').trim() || `"${name}" <${user || 'hi@sannara.in'}>`,
     ready: Boolean(user && pass),
   };
 }
@@ -51,18 +51,20 @@ const config = {
   },
   admin: {
     name: env.ADMIN_NAME || 'Store Admin',
-    email: env.ADMIN_EMAIL || 'admin@ootyoriginals.in',
-    password: env.ADMIN_PASSWORD || 'Admin@123',
+    email: env.ADMIN_EMAIL || 'admin@sannara.in',
+    password: env.ADMIN_PASSWORD || '',
   },
   smtp: mailSettings(),
   razorpay: {
     keyId: env.RAZORPAY_KEY_ID || '',
     keySecret: env.RAZORPAY_KEY_SECRET || '',
+    webhookSecret: env.RAZORPAY_WEBHOOK_SECRET || '',
   },
   shiprocket: {
     email: (env.SHIPROCKET_EMAIL || '').trim(),
     password: (env.SHIPROCKET_PASSWORD || '').trim(),
-    pickupLocation: (env.SHIPROCKET_PICKUP_LOCATION || 'warehouse').trim(),
+    pickupLocation: (env.SHIPROCKET_PICKUP_LOCATION || 'warehouse-1').trim(),
+    webhookToken: (env.SHIPROCKET_WEBHOOK_TOKEN || '').trim(),
   },
   uploadsDir: path.join(__dirname, '..', '..', 'uploads'),
   // Requests allowed per minute from one visitor (IP address).
@@ -77,6 +79,9 @@ const config = {
 
 config.paymentGateway = config.razorpay.keyId && config.razorpay.keySecret ? 'razorpay' : 'mock';
 
+if (config.isProd && config.paymentGateway === 'mock') {
+  throw new Error('Production checkout requires Razorpay credentials');
+}
 if (config.isProd && config.jwt.secret.length < 32) {
   throw new Error('JWT_SECRET must be at least 32 characters in production');
 }

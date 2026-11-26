@@ -7,9 +7,29 @@ const { HttpError } = require('../middleware/error');
 async function getOrder(where, params) {
   const [order] = await q(`SELECT * FROM orders WHERE ${where} LIMIT 1`, params);
   if (!order) return null;
+  if (order.cancellation_items && typeof order.cancellation_items === 'string') {
+    try {
+      order.cancellation_items = JSON.parse(order.cancellation_items);
+    } catch {}
+  }
+  if (order.cancelled_items && typeof order.cancelled_items === 'string') {
+    try {
+      order.cancelled_items = JSON.parse(order.cancelled_items);
+    } catch {}
+  }
   const [items, history, payments] = await Promise.all([
     q(
-      `SELECT oi.*, p.slug FROM order_items oi LEFT JOIN products p ON p.id = oi.product_id WHERE oi.order_id = ? ORDER BY oi.id`,
+      `SELECT oi.*, p.slug,
+              COALESCE(pv.package_length, p.package_length) AS package_length,
+              COALESCE(pv.package_breadth, p.package_breadth) AS package_breadth,
+              COALESCE(pv.package_height, p.package_height) AS package_height,
+              COALESCE(pv.package_weight, p.package_weight) AS package_weight,
+              COALESCE(pv.sku, p.sku) AS sku
+         FROM order_items oi
+         LEFT JOIN products p ON p.id = oi.product_id
+         LEFT JOIN product_variants pv ON pv.id = oi.variant_id
+        WHERE oi.order_id = ?
+        ORDER BY oi.id`,
       [order.id]
     ),
     q('SELECT status, note, created_at FROM order_status_history WHERE order_id = ? ORDER BY id', [order.id]),
@@ -45,7 +65,13 @@ async function createGatewayPayment(order) {
     const response = await fetch('https://api.razorpay.com/v1/orders', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', Authorization: `Basic ${auth}` },
-      body: JSON.stringify({ amount: amountPaise, currency: 'INR', receipt: order.order_number, notes: { order_number: order.order_number } }),
+      body: JSON.stringify({
+        amount: amountPaise,
+        currency: 'INR',
+        receipt: order.order_number,
+        payment_capture: 1,
+        notes: { order_number: order.order_number },
+      }),
     });
     const body = await response.json().catch(() => ({}));
     if (!response.ok || !body.id) {
@@ -82,7 +108,8 @@ async function findCapturedPayment(gatewayOrderId) {
     const response = await fetch(`https://api.razorpay.com/v1/orders/${gatewayOrderId}/payments`, { headers: { Authorization: `Basic ${auth}` } });
     if (!response.ok) return undefined; // could not check — leave the order alone for now
     const body = await response.json();
-    return (body.items || []).find((p) => p.status === 'captured' || p.status === 'authorized') || null;
+    const items = body.items || [];
+    return items.find(p => p.status === 'captured') || (items.some(p => p.status === 'authorized') ? undefined : null);
   } catch {
     return undefined;
   }
@@ -94,7 +121,7 @@ async function findCapturedPayment(gatewayOrderId) {
  * could not be reached.
  */
 async function confirmIfPaid(orderId) {
-  const attempts = await q("SELECT id, gateway_order_id FROM payments WHERE order_id = ? AND gateway = 'razorpay' AND status <> 'paid' ORDER BY id DESC", [orderId]);
+  const attempts = await q("SELECT id, gateway_order_id FROM payments WHERE order_id = ? AND gateway = 'razorpay' AND status IN ('created','failed') ORDER BY id DESC", [orderId]);
   let unknown = false;
   for (const attempt of attempts) {
     const payment = await findCapturedPayment(attempt.gateway_order_id);
@@ -102,8 +129,8 @@ async function confirmIfPaid(orderId) {
     if (!payment) continue;
     await tx(async (run) => {
       await run("UPDATE payments SET status = 'paid', gateway_payment_id = ?, failure_reason = NULL WHERE id = ?", [payment.id, attempt.id]);
-      await run("UPDATE orders SET payment_status = 'paid', status = 'confirmed' WHERE id = ? AND status = 'pending'", [orderId]);
-      await addHistory(run, orderId, 'confirmed', 'Payment received (confirmed with Razorpay)');
+      await run("UPDATE orders SET payment_status = 'paid', status = 'placed' WHERE id = ? AND status = 'pending'", [orderId]);
+      await addHistory(run, orderId, 'placed', 'Payment received · Order placed (confirmed with Razorpay)');
     });
     return 'paid';
   }
@@ -139,15 +166,25 @@ async function expireUnpaidOrders(minutes = 30) {
 /**
  * Processes a refund through Razorpay (or mock in development)
  */
-async function refundPayment(paymentId, amountInRupees, notes = {}) {
+async function refundPayment(paymentId, amountInRupees, notes = {}, expected = null) {
   const amountPaise = Math.round(Number(amountInRupees) * 100);
   if (config.paymentGateway === 'razorpay') {
     const auth = Buffer.from(`${config.razorpay.keyId}:${config.razorpay.keySecret}`).toString('base64');
+    const idempotencyKey = notes.idempotencyKey || `rfnd_${paymentId}_${amountPaise}_${Date.now()}`;
+    if (expected) {
+      const check = await fetch('https://api.razorpay.com/v1/payments/'+encodeURIComponent(paymentId),{headers:{Authorization:'Basic '+auth}});
+      if (!check.ok) throw new HttpError(502,'Cannot verify original payment');
+      const payment = await check.json();
+      if (payment.id !== paymentId || !payment.captured || payment.currency !== 'INR' ||
+          payment.order_id !== expected.gatewayOrderId || payment.amount !== Math.round(expected.paymentAmount*100))
+        throw new HttpError(409,'Captured payment does not match this order');
+    }
     const response = await fetch(`https://api.razorpay.com/v1/payments/${paymentId}/refund`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         Authorization: `Basic ${auth}`,
+        'X-Refund-Idempotency': String(idempotencyKey),
       },
       body: JSON.stringify({
         amount: amountPaise,
@@ -166,19 +203,43 @@ async function refundPayment(paymentId, amountInRupees, notes = {}) {
       }
       throw new HttpError(400, msg);
     }
+    if (!body.id || body.payment_id !== paymentId || body.amount !== amountPaise || !['pending','failed','processed'].includes(body.status))
+      throw new HttpError(502,'Refund response requires reconciliation');
     return {
-      refundId: body.id,
+      refundId: body.id, paymentId, key:idempotencyKey,
       amount: body.amount / 100,
       status: body.status,
     };
   } else {
     // Mock refund in development
     return {
+      paymentId, key:notes.idempotencyKey,
       refundId: `rfnd_mock_${crypto.randomBytes(8).toString('hex')}`,
       amount: Number(amountInRupees),
       status: 'processed',
     };
   }
+}
+
+/**
+ * Fetches all refund attempts for a payment directly from Razorpay
+ */
+async function fetchPaymentRefunds(paymentId) {
+  if (config.paymentGateway === 'razorpay') {
+    const auth = Buffer.from(`${config.razorpay.keyId}:${config.razorpay.keySecret}`).toString('base64');
+    try {
+      const response = await fetch(`https://api.razorpay.com/v1/payments/${paymentId}/refunds`, {
+        headers: { Authorization: `Basic ${auth}` },
+      });
+      if (!response.ok) return [];
+      const body = await response.json();
+      return body.items || [];
+    } catch (err) {
+      console.warn('[razorpay] fetchPaymentRefunds error:', err.message);
+      return [];
+    }
+  }
+  return [];
 }
 
 module.exports = {
@@ -190,4 +251,5 @@ module.exports = {
   confirmIfPaid,
   expireUnpaidOrders,
   refundPayment,
+  fetchPaymentRefunds,
 };

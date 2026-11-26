@@ -1,3 +1,4 @@
+const { SALE, NET_AMOUNT } = require('../../utils/salesRevenue');
 const { z } = require('zod');
 const { q } = require('../../config/db');
 const { HttpError, validate } = require('../../middleware/error');
@@ -18,7 +19,7 @@ async function list(req, res) {
   const rows = await q(
     `SELECT u.id, u.name, u.email, u.phone, u.status, u.created_at, u.last_login_at,
             (SELECT COUNT(*) FROM orders WHERE user_id = u.id) AS order_count,
-            (SELECT COALESCE(SUM(total), 0) FROM orders WHERE user_id = u.id AND status <> 'cancelled' AND (payment_status = 'paid' OR payment_method = 'cod')) AS total_spent
+            (SELECT COALESCE(SUM(${NET_AMOUNT}), 0) FROM orders o WHERE o.user_id = u.id AND ${SALE}) AS total_spent
        FROM users u WHERE ${where.join(' AND ')} ORDER BY u.id DESC LIMIT ? OFFSET ?`,
     [...params, limit, offset]
   );

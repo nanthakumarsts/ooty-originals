@@ -75,9 +75,9 @@ export default function Dashboard() {
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        <Stat label="Revenue" value={inr(Math.round(data.revenue))} current={data.revenue} previous={data.previousRevenue} note={versus} />
+        <Stat label="Revenue" value={inr(data.revenue)} current={data.revenue} previous={data.previousRevenue} note={versus} />
         <Stat label="Orders" value={data.orders} current={data.orders} previous={data.previousOrders} note={versus} />
-        <Stat label="Average order value" value={inr(Math.round(data.averageOrder))} note={`Across ${data.orders} ${data.orders === 1 ? 'order' : 'orders'}`} />
+        <Stat label="Average order value" value={inr(data.averageOrder)} note={`Across ${data.orders} ${data.orders === 1 ? 'order' : 'orders'}`} />
         <Stat label="Customers" value={data.customers} note={`${data.new_customers} new in this period`} />
       </div>
 
@@ -100,7 +100,7 @@ export default function Dashboard() {
                     <img src={img(p.image)} alt="" className="size-10 shrink-0 rounded-md bg-canvas object-cover" />
                     <div className="min-w-0 flex-1">
                       <p className="truncate text-sm font-medium">{p.name}</p>
-                      <p className="text-[13px] text-ink-500">{p.units} sold · {inr(p.revenue)}</p>
+                      <p className="text-[13px] text-ink-500">{p.units} sold · {inr(p.revenue)} gross sales</p>
                     </div>
                   </li>
                 ))}

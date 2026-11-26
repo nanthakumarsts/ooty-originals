@@ -15,7 +15,18 @@ export default function SiteSettings() {
   const [errors, setErrors] = useState({});
 
   useEffect(() => {
-    api.get('/settings').then((d) => setForm({ ...d.settings, promises: d.settings.promises || [], about_values: d.settings.about_values || [] })).catch((err) => toast.error(err.message));
+    api
+      .get('/settings')
+      .then((d) =>
+        setForm({
+          ...d.settings,
+          allow_cancellation: d.settings.allow_cancellation ?? '1',
+          allow_returns: d.settings.allow_returns ?? '1',
+          promises: d.settings.promises || [],
+          about_values: d.settings.about_values || [],
+        })
+      )
+      .catch((err) => toast.error(err.message));
   }, [toast]);
 
   if (!form) return <PageSkeleton />;
@@ -68,10 +79,33 @@ export default function SiteSettings() {
       </PageHeader>
 
       <div className="grid items-start gap-5 xl:grid-cols-2">
-        <section className="card space-y-4 p-5">
-          <h2 className="card-title">Announcement bar</h2>
-          <Field label="Message" value={form.announcement || ''} onChange={set('announcement')} hint="The strip at the very top of every page. Leave empty to hide it." />
-        </section>
+        <div className="space-y-5">
+          <section className="card space-y-4 p-5">
+            <h2 className="card-title">Announcement bar</h2>
+            <Field label="Message" value={form.announcement || ''} onChange={set('announcement')} hint="The strip at the very top of every page. Leave empty to hide it." />
+          </section>
+
+          <section className="card space-y-4 p-5">
+            <h2 className="card-title">Customer Order Policies</h2>
+            <p className="text-[13px] text-ink-500">Enable or disable self-service cancellation and return buttons in the customer portal.</p>
+            <div className="space-y-4 pt-1">
+              <Toggle
+                label="Allow Order Cancellation"
+                description="When enabled, customers see the 'Cancel order' button within the 24-hour window. When turned off, cancellation is completely disabled and hidden."
+                checked={form.allow_cancellation !== '0'}
+                onChange={(v) => setForm((f) => ({ ...f, allow_cancellation: v ? '1' : '0' }))}
+              />
+              <div className="border-t border-line/60 pt-3">
+                <Toggle
+                  label="Allow Returns & Refunds"
+                  description="When enabled, customers see the 'Request Return / Refund' button within 7 days of delivery. When turned off, return requests are completely disabled and hidden."
+                  checked={form.allow_returns !== '0'}
+                  onChange={(v) => setForm((f) => ({ ...f, allow_returns: v ? '1' : '0' }))}
+                />
+              </div>
+            </div>
+          </section>
+        </div>
 
         <div className="space-y-5">
           <section className="card space-y-4 p-5">

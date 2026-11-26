@@ -20,6 +20,9 @@ router.post('/auth/login', limits.adminLogin, auth.login(true));
 
 // Everything below needs an administrator token.
 router.use(requireAdmin);
+const reviews = require('../controllers/reviewController');
+router.get('/reviews', reviews.queue);
+router.patch('/reviews/:id', reviews.moderate);
 
 router.get('/auth/me', auth.me);
 router.put('/auth/profile', auth.updateProfile);
@@ -50,9 +53,24 @@ router.patch('/orders/:id/status', orders.updateStatus);
 router.patch('/orders/:id/payment', orders.updatePayment);
 router.post('/orders/:id/shiprocket-sync', orders.syncShiprocket);
 router.post('/orders/:id/shiprocket-awb', orders.generateShiprocketAWB);
+router.post('/orders/:id/track-sync', orders.syncTracking);
+router.post('/orders/:id/cancellation/approve', orders.approveCancellation);
+router.post('/orders/:id/cancellation/reject', orders.rejectCancellation);
+router.post('/orders/:id/cancellation/sync', orders.syncCancellationRefund);
 router.get('/returns', returns.adminListReturns);
+router.get('/returns/:id', returns.adminGetOrderReturn);
+router.post('/returns/:id/approve', returns.adminApproveReturn);
+router.post('/returns/:id/schedule-pickup', returns.adminSchedulePickup);
+router.get('/returns/:id/pickup-options', returns.adminPickupOptions);
+router.post('/returns/:id/receive', returns.adminReceivePackage);
+router.post('/returns/:id/refund', returns.adminProcessRefund);
+router.post('/returns/:id/reject', returns.adminRejectReturn);
+
 router.get('/orders/:id/return', returns.adminGetOrderReturn);
 router.post('/orders/:id/return/approve', returns.adminApproveReturn);
+router.post('/orders/:id/return/schedule-pickup', returns.adminSchedulePickup);
+router.post('/orders/:id/return/receive', returns.adminReceivePackage);
+router.post('/orders/:id/return/refund', returns.adminProcessRefund);
 router.post('/orders/:id/return/reject', returns.adminRejectReturn);
 
 router.get('/users', users.list);

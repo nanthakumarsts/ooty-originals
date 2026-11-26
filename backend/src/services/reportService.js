@@ -2,8 +2,7 @@ const ExcelJS = require('exceljs');
 const PDFDocument = require('pdfkit');
 const { q } = require('../config/db');
 
-// An order counts as a sale once it is paid, or placed as Cash on Delivery, and not cancelled.
-const SALE = "o.status <> 'cancelled' AND (o.payment_status = 'paid' OR o.payment_method = 'cod')";
+const { SALE, NET_AMOUNT } = require('../utils/salesRevenue');
 const IN_RANGE = 'o.created_at >= ? AND o.created_at < DATE_ADD(?, INTERVAL 1 DAY)';
 
 const cap = (s) => String(s || '').replace(/^./, (c) => c.toUpperCase());
@@ -34,19 +33,20 @@ const REPORTS = {
       { key: 'subtotal', label: 'Subtotal', type: 'money', width: 13, excelOnly: true },
       { key: 'discount', label: 'Discount', type: 'money', width: 12 },
       { key: 'shipping_fee', label: 'Delivery', type: 'money', width: 12, excelOnly: true },
-      { key: 'total', label: 'Total', type: 'money', width: 13 },
+      { key: 'total', label: 'Order total', type: 'money', width: 13 },
+      { key: 'net_revenue', label: 'Net revenue', type: 'money', width: 13 },
     ],
     async load(from, to) {
       const rows = await q(
         `SELECT o.order_number, o.created_at, o.customer_name, o.customer_email, o.ship_phone, o.ship_city, o.ship_state,
                 (SELECT COALESCE(SUM(quantity), 0) FROM order_items WHERE order_id = o.id) AS items,
                 o.payment_method, o.payment_status, o.status, o.coupon_code, o.subtotal, o.discount, o.shipping_fee, o.total,
-                (${SALE}) AS is_sale
+                (${SALE}) AS is_sale, CASE WHEN ${SALE} THEN ${NET_AMOUNT} ELSE 0 END AS net_revenue
            FROM orders o WHERE ${IN_RANGE} ORDER BY o.id`,
         [from, to]
       );
       const sales = rows.filter((r) => r.is_sale);
-      const revenue = sales.reduce((sum, r) => sum + Number(r.total), 0);
+      const revenue = sales.reduce((sum, r) => sum + Number(r.net_revenue), 0);
       return {
         rows: rows.map((r) => ({ ...r, items: Number(r.items), payment: r.payment_method === 'cod' ? 'COD' : 'Online', payment_status: cap(r.payment_status), status: cap(r.status), coupon_code: r.coupon_code || '' })),
         summary: [
@@ -63,14 +63,14 @@ const REPORTS = {
 
   products: {
     title: 'Product sales report',
-    description: 'Units sold and revenue for each product in the period.',
+    description: 'Ordered units and gross merchandise sales by product before discounts and returns.',
     dated: true,
     columns: [
       { key: 'name', label: 'Product', type: 'text', width: 40 },
       { key: 'variant', label: 'Option', type: 'text', width: 18 },
       { key: 'orders', label: 'Orders', type: 'int', width: 10 },
       { key: 'units', label: 'Units sold', type: 'int', width: 12 },
-      { key: 'revenue', label: 'Revenue', type: 'money', width: 15 },
+      { key: 'revenue', label: 'Gross sales', type: 'money', width: 15 },
     ],
     async load(from, to) {
       const rows = await q(
@@ -87,7 +87,7 @@ const REPORTS = {
         summary: [
           { label: 'Products sold', value: new Set(clean.map((r) => r.name)).size, type: 'int' },
           { label: 'Units sold', value: clean.reduce((sum, r) => sum + r.units, 0), type: 'int' },
-          { label: 'Revenue', value: clean.reduce((sum, r) => sum + r.revenue, 0), type: 'money' },
+          { label: 'Gross sales', value: clean.reduce((sum, r) => sum + r.revenue, 0), type: 'money' },
         ],
       };
     },
@@ -152,7 +152,7 @@ const REPORTS = {
       const rows = await q(
         `SELECT u.name, u.email, COALESCE(u.phone, '') AS phone, u.created_at, u.status,
                 (SELECT COUNT(*) FROM orders o WHERE o.user_id = u.id AND ${IN_RANGE}) AS orders,
-                (SELECT COALESCE(SUM(o.total), 0) FROM orders o WHERE o.user_id = u.id AND ${IN_RANGE} AND ${SALE}) AS spent,
+                (SELECT COALESCE(SUM(${NET_AMOUNT}), 0) FROM orders o WHERE o.user_id = u.id AND ${IN_RANGE} AND ${SALE}) AS spent,
                 (u.created_at >= ? AND u.created_at < DATE_ADD(?, INTERVAL 1 DAY)) AS is_new
            FROM users u WHERE u.role = 'customer' ORDER BY spent DESC, u.name`,
         [from, to, from, to, from, to]

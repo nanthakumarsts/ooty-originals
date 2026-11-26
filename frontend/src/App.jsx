@@ -36,6 +36,7 @@ const AccountLayout = page(() => import('./pages/account/AccountLayout'));
 const Profile = page(() => import('./pages/account/Profile'));
 const Addresses = page(() => import('./pages/account/Addresses'));
 const ChangePassword = page(() => import('./pages/account/ChangePassword'));
+const MyReviews = page(() => import('./pages/account/MyReviews'));
 const Orders = page(() => import('./pages/account/Orders'));
 const OrderDetail = page(() => import('./pages/account/OrderDetail'));
 
@@ -137,6 +138,7 @@ export default function App() {
               <Route index element={<Profile />} />
               <Route path="addresses" element={<Addresses />} />
               <Route path="password" element={<ChangePassword />} />
+              <Route path="reviews" element={<MyReviews />} />
               <Route path="orders" element={<Orders />} />
               <Route path="orders/:orderNumber" element={<OrderDetail />} />
             </Route>

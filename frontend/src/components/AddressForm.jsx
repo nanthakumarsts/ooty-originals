@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import api from '../lib/api';
 import { COUNTRIES, getCountry } from '../lib/countries';
 import { minLength, onlyDigits, required, useValidation } from '../lib/validation';
@@ -41,8 +41,38 @@ export default function AddressForm({ address, defaultName = '', defaultPhone = 
 
   const [message, setMessage] = useState('');
   const [busy, setBusy] = useState(false);
+  const [pincodeStatus, setPincodeStatus] = useState({ checking: false, serviceable: null, message: '' });
 
   const selectedCountry = useMemo(() => getCountry(form.country), [form.country]);
+
+  useEffect(() => {
+    const pin = String(form.pincode || '').trim();
+    if (form.country !== 'India' || !/^[1-9]\d{5}$/.test(pin)) {
+      setPincodeStatus({ checking: false, serviceable: null, message: '' });
+      return;
+    }
+    let active = true;
+    setPincodeStatus({ checking: true, serviceable: null, message: 'Checking delivery availability…' });
+    const timer = setTimeout(() => {
+      api.get(`/pincode/check/${pin}`)
+        .then((res) => {
+          if (!active) return;
+          if (res.serviceable) {
+            setPincodeStatus({ checking: false, serviceable: true, message: `Delivery available via ${res.courierName || 'courier'}` });
+          } else {
+            setPincodeStatus({ checking: false, serviceable: false, message: res.message || 'Delivery not available to this PIN code' });
+          }
+        })
+        .catch(() => {
+          if (active) setPincodeStatus({ checking: false, serviceable: null, message: '' });
+        });
+    }, 400);
+
+    return () => {
+      active = false;
+      clearTimeout(timer);
+    };
+  }, [form.pincode, form.country]);
 
   const rules = useMemo(() => ({
     full_name: [required('Enter the name of the person receiving the order'), minLength(2, 'Enter the full name')],
@@ -111,6 +141,10 @@ export default function AddressForm({ address, defaultName = '', defaultPhone = 
     e.stopPropagation(); // this form can sit inside the checkout page
     setMessage('');
     if (!v.check()) return;
+    if (form.country === 'India' && pincodeStatus.serviceable === false) {
+      setMessage(`Delivery is not available to PIN code ${form.pincode}. Please enter a serviceable PIN code.`);
+      return;
+    }
     setBusy(true);
     try {
       const payload = {
@@ -189,16 +223,23 @@ export default function AddressForm({ address, defaultName = '', defaultPhone = 
       <Field label="City" required value={form.city} onChange={set('city')} {...v.bind('city')} autoComplete="address-level2" />
 
       {/* PIN / ZIP / Postal code with country specific validation */}
-      <Field
-        label={selectedCountry.postalLabel}
-        required={selectedCountry.postalRequired}
-        inputMode={selectedCountry.code === 'IN' || selectedCountry.code === 'SG' ? 'numeric' : 'text'}
-        value={form.pincode}
-        onChange={set('pincode')}
-        {...v.bind('pincode')}
-        autoComplete="postal-code"
-        placeholder={selectedCountry.postalPlaceholder}
-      />
+      <div>
+        <Field
+          label={selectedCountry.postalLabel}
+          required={selectedCountry.postalRequired}
+          inputMode={selectedCountry.code === 'IN' || selectedCountry.code === 'SG' ? 'numeric' : 'text'}
+          value={form.pincode}
+          onChange={set('pincode')}
+          {...v.bind('pincode')}
+          autoComplete="postal-code"
+          placeholder={selectedCountry.postalPlaceholder}
+        />
+        {pincodeStatus.message && (
+          <p className={cx('mt-1.5 text-xs font-medium flex items-center gap-1', pincodeStatus.serviceable ? 'text-emerald-700' : pincodeStatus.checking ? 'text-ink-500' : 'text-rose-600')}>
+            {pincodeStatus.serviceable ? '✓' : pincodeStatus.checking ? '●' : '✕'} {pincodeStatus.message}
+          </p>
+        )}
+      </div>
 
       {/* State: Dropdown for countries with preset states, or text input for international */}
       {selectedCountry.states ? (

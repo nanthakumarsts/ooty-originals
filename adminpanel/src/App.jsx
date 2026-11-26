@@ -18,6 +18,7 @@ const Coupons = lazy(() => import('./pages/Coupons'));
 const SiteSettings = lazy(() => import('./pages/SiteSettings'));
 const Banners = lazy(() => import('./pages/Banners'));
 const Pages = lazy(() => import('./pages/Pages'));
+const Reviews = lazy(() => import('./pages/Reviews'));
 const Messages = lazy(() => import('./pages/Messages'));
 const Account = lazy(() => import('./pages/Account'));
 const Reports = lazy(() => import('./pages/Reports'));
@@ -72,6 +73,7 @@ export default function App() {
         <Route path="content/banners" element={<Banners />} />
         <Route path="content/settings" element={<SiteSettings />} />
         <Route path="content/pages" element={<Pages />} />
+        <Route path="reviews" element={<Reviews />} />
         <Route path="messages" element={<Messages />} />
         <Route path="account" element={<Account />} />
         <Route path="*" element={<Navigate to="/" replace />} />

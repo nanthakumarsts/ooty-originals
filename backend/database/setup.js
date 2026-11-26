@@ -27,11 +27,13 @@ async function main() {
   await run(`CREATE DATABASE IF NOT EXISTS \`${DB}\` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci`);
   await run(`USE \`${DB}\``);
   await run(fs.readFileSync(path.join(__dirname, 'schema.sql'), 'utf8'));
+  await run(fs.readFileSync(path.join(__dirname, 'product-reviews.sql'), 'utf8'));
   console.log(`Database "${DB}" and tables are ready`);
 
   // ---- Admin account ----
   const admins = await run("SELECT id FROM users WHERE role = 'admin' LIMIT 1");
   if (!admins.length) {
+    if (!config.admin.password) throw new Error('Set ADMIN_PASSWORD to create the first administrator.');
     await run("INSERT INTO users (name, email, phone, password_hash, role) VALUES (?, ?, ?, ?, 'admin')", [
       config.admin.name, config.admin.email.toLowerCase(), '9487654990', await bcrypt.hash(config.admin.password, 11),
     ]);

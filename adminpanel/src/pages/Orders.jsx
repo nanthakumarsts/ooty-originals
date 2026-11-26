@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
-import { ArrowRight, Ban, CircleCheck, Clock, PackageCheck, PackageOpen, RotateCcw, ShoppingCart, Truck } from 'lucide-react';
+import { ArrowRight, Ban, CheckCircle2, CircleCheck, PackageCheck, RotateCcw, ShoppingCart, Sparkles, Truck } from 'lucide-react';
 import api from '../lib/api';
 import { ORDER_STATUS, PAYMENT_STATUS, formatDate, img, inr } from '../lib/format';
 import { useApp } from '../context/AppContext';
@@ -9,26 +9,30 @@ import { Badge, Button, EmptyState, PageHeader, Pagination, SearchInput, Select,
 // The stages an order moves through, in the order the team works on them.
 const STAGES = [
   { status: '', label: 'All orders', icon: ShoppingCart },
-  { status: 'confirmed', label: 'To pack', icon: PackageOpen, hint: 'New orders, ready to pack' },
-  { status: 'processing', label: 'Packing', icon: PackageCheck, hint: 'Being packed — ship next' },
-  { status: 'shipped', label: 'Shipped', icon: Truck, hint: 'On the way to the customer' },
-  { status: 'delivered', label: 'Delivered', icon: CircleCheck },
-  { status: 'returned', label: 'Returned', icon: RotateCcw, hint: 'Returned & refunded' },
-  { status: 'pending', label: 'Awaiting payment', icon: Clock, hint: 'Customer has not paid yet' },
+  { status: 'placed', label: 'New arrivals', icon: Sparkles, hint: 'Newly placed orders — review and confirm' },
+  { status: 'confirmed', label: 'Confirmed', icon: CheckCircle2, hint: 'Confirmed orders — ready to ship' },
+  { status: 'shipped', label: 'Shipped', icon: Truck, hint: 'Courier dispatched & in transit' },
+  { status: 'out_for_delivery', label: 'Out for delivery', icon: PackageCheck, hint: 'Out for doorstep delivery' },
+  { status: 'delivered', label: 'Delivered', icon: CircleCheck, hint: 'Successfully delivered' },
+  { status: 'cancellation_requested', label: 'Cancellation requests', icon: RotateCcw, hint: 'Awaiting admin approval' },
   { status: 'cancelled', label: 'Cancelled', icon: Ban },
+  { status: 'returned', label: 'Returned', icon: RotateCcw, hint: 'Returned & refunded' },
 ];
 
 /** What the team does next with an order in each status. */
 const NEXT = {
-  confirmed: { label: 'Start packing', to: 'processing' },
-  processing: { label: 'Add tracking & ship', open: true },
-  shipped: { label: 'Mark delivered', to: 'delivered' },
+  placed: { label: 'Confirm', to: 'confirmed' },
+  pending: { label: 'Confirm', to: 'confirmed' },
+  confirmed: { label: 'Ship order', open: true },
+  shipped: { label: 'Out for delivery', to: 'out_for_delivery' },
+  out_for_delivery: { label: 'Mark delivered', to: 'delivered' },
 };
 
 function PaymentBadge({ order }) {
   const cod = order.payment_method === 'cod';
   if (cod && order.payment_status === 'pending') return <Badge tone="amber">Cash on delivery</Badge>;
-  return <Badge tone={PAYMENT_STATUS[order.payment_status].tone}>{PAYMENT_STATUS[order.payment_status].label}{cod ? ' · COD' : ''}</Badge>;
+  const pMeta = PAYMENT_STATUS[order.payment_status] || { label: order.payment_status, tone: 'gray' };
+  return <Badge tone={pMeta.tone}>{pMeta.label}{cod ? ' · COD' : ''}</Badge>;
 }
 
 function ItemsPreview({ order }) {
@@ -101,11 +105,11 @@ export default function Orders() {
       <PageHeader title="Orders" description="Pick a stage to see its orders. The button on each row moves the order to the next stage." />
 
       {/* Stages with live counts — click one to filter */}
-      <div className="no-scrollbar -mx-4 mb-4 flex gap-2.5 overflow-x-auto px-4 sm:mx-0 sm:px-0 xl:grid xl:grid-cols-7" role="tablist" aria-label="Order stage">
+      <div className="no-scrollbar -mx-4 mb-4 flex gap-2.5 overflow-x-auto px-4 sm:mx-0 sm:px-0 xl:grid xl:grid-cols-9" role="tablist" aria-label="Order stage">
         {STAGES.map(({ status: value, label, icon: Icon, hint }) => {
           const active = status === value;
           const count = value ? counts[value] || 0 : counts.all || 0;
-          const urgent = (value === 'confirmed' || value === 'processing') && count > 0;
+          const urgent = (value === 'placed' || value === 'confirmed' || value === 'cancellation_requested') && count > 0;
           return (
             <button
               key={label}
@@ -130,7 +134,7 @@ export default function Orders() {
       <div className="card overflow-hidden">
         <div className="grid gap-3 border-b border-line p-4 lg:grid-cols-[1fr_170px_150px_150px_auto]">
           <SearchInput value={search} onChange={setSearch} placeholder="Search order no., customer, email or phone" />
-          <Select label="Payment" value={params.get('payment') || ''} onChange={(v) => setParam({ payment: v })} options={[['', 'Any payment'], ['paid', 'Paid'], ['pending', 'Pending'], ['failed', 'Failed'], ['refunded', 'Refunded']]} />
+          <Select label="Payment" value={params.get('payment') || ''} onChange={(v) => setParam({ payment: v })} options={[['', 'Any payment'], ['paid', 'Paid'], ['pending', 'Pending'], ['failed', 'Failed'], ['refunded', 'Refunded'], ['partially_refunded', 'Partially refunded']]} />
           <input type="date" aria-label="Placed from" title="Placed from" value={params.get('from') || ''} max={params.get('to') || undefined} onChange={(e) => setParam({ from: e.target.value })} className="input" />
           <input type="date" aria-label="Placed up to" title="Placed up to" value={params.get('to') || ''} min={params.get('from') || undefined} onChange={(e) => setParam({ to: e.target.value })} className="input" />
           {filtered && (

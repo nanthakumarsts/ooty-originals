@@ -50,7 +50,11 @@ export function AppProvider({ children }) {
         localStorage.setItem(TOKEN_KEY, d.token);
         setAdmin(d.user);
       },
-      toast: { success: (m) => show('success', m), error: (m) => show('error', m) },
+      toast: {
+        success: (m) => show('success', m),
+        error: (m) => show('error', m),
+        info: (m) => show('info', m),
+      },
     }),
     [admin, ready, logout, show]
   );
@@ -61,7 +65,13 @@ export function AppProvider({ children }) {
       <div className="pointer-events-none fixed right-4 bottom-4 z-[100] flex w-[min(92vw,360px)] flex-col gap-2" aria-live="polite">
         {toasts.map((t) => (
           <div key={t.id} role={t.type === 'error' ? 'alert' : 'status'} className="pointer-events-auto flex animate-pop items-start gap-3 rounded-xl bg-ink-900 py-3 pr-2 pl-4 text-sm text-white shadow-lift">
-            {t.type === 'error' ? <AlertCircle className="mt-0.5 size-[18px] shrink-0 text-[#ff9f8f]" aria-hidden /> : <CheckCircle2 className="mt-0.5 size-[18px] shrink-0 text-brand-300" aria-hidden />}
+            {t.type === 'error' ? (
+              <AlertCircle className="mt-0.5 size-[18px] shrink-0 text-[#ff9f8f]" aria-hidden />
+            ) : t.type === 'info' ? (
+              <AlertCircle className="mt-0.5 size-[18px] shrink-0 text-amber-300" aria-hidden />
+            ) : (
+              <CheckCircle2 className="mt-0.5 size-[18px] shrink-0 text-brand-300" aria-hidden />
+            )}
             <span className="flex-1 leading-snug">{t.message}</span>
             <button type="button" onClick={() => dismiss(t.id)} aria-label="Dismiss" className="flex size-7 shrink-0 items-center justify-center rounded-md text-white/70 hover:bg-white/10 hover:text-white">
               <X className="size-4" aria-hidden />

@@ -39,10 +39,12 @@ function explain(err) {
 async function sendMail(template, to, data) {
   const build = templates[template];
   if (!build || !to) return;
-  const { subject, html } = build(data);
   try {
+    const { subject, html } = build(data);
     if (transporter) {
-      await transporter.sendMail({ from: smtp.from, to, subject, html });
+      const info = await transporter.sendMail({ from: smtp.from, to, subject, html });
+      console.log(`[mail:${template}] sent to ${to} (${info?.messageId})`);
+      return info;
     } else if (!config.isProd) {
       console.log(`[mail:${template}] to ${to} — "${subject}" (not sent: email is not set up in .env)`);
     }

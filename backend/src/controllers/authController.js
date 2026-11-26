@@ -59,15 +59,9 @@ const login = (adminOnly) => async (req, res) => {
   if (user.status !== 'active') {
     throw new HttpError(403, 'This account has been disabled. Please contact support.');
   }
-  let ok = await bcrypt.compare(data.password, user.password_hash);
-  if (!ok && adminOnly && config.admin.password && data.password === config.admin.password) {
-    // Direct match with .env ADMIN_PASSWORD: sync database hash immediately
-    const newHash = await bcrypt.hash(config.admin.password, 11);
-    await q('UPDATE users SET password_hash = ? WHERE id = ?', [newHash, user.id]);
-    ok = true;
-  }
+  const ok = await bcrypt.compare(data.password, user.password_hash);
   if (!ok) {
-    throw new HttpError(401, adminOnly ? 'Incorrect password. Please verify ADMIN_PASSWORD in your server .env file.' : 'Incorrect password. Please try again or use forgot password.');
+    throw new HttpError(401, adminOnly ? 'Incorrect password.' : 'Incorrect password. Please try again or use forgot password.');
   }
   await q('UPDATE users SET last_login_at = NOW() WHERE id = ?', [user.id]);
   sendMail('loginAlert', user.email, {
@@ -106,7 +100,7 @@ async function forgotPassword(req, res) {
     throw new HttpError(404, 'No account found with this email address. Please create a new account.');
   }
   if (req.body.from === 'admin' || user.role === 'admin') {
-    throw new HttpError(400, 'Admin password resets via email are disabled. Update ADMIN_PASSWORD in your server .env file.');
+    throw new HttpError(400, 'Contact your administrator for account recovery.');
   }
 
   const token = crypto.randomBytes(32).toString('hex');

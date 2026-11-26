@@ -1,3 +1,4 @@
+const { cleanProductDescription } = require('../utils/productDescription');
 const { q } = require('../config/db');
 const { HttpError } = require('../middleware/error');
 const { parseJSON, paging } = require('../utils/helpers');
@@ -134,7 +135,7 @@ async function productDetail(req, res) {
       stock: Math.max(0, p.stock),
       inStock: p.stock > 0,
       shortDescription: p.short_description,
-      description: p.description,
+      description: cleanProductDescription(p.description),
       specifications: parseJSON(p.specifications, []),
       isBestseller: !!p.is_bestseller,
       isNew: !!p.is_new,

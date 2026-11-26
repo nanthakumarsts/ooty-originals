@@ -1,11 +1,12 @@
 import { useEffect, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
-import { ArrowLeft, Package, Plus, Trash2 } from 'lucide-react';
+import { ArrowLeft, Package, Plus, Trash2, Edit2, Layers, CheckCircle2, Copy } from 'lucide-react';
 import api from '../lib/api';
 import { useApp } from '../context/AppContext';
 import ImageUploader from '../components/ImageUploader';
 import RichEditor from '../components/RichEditor';
-import { Alert, Button, Field, PageHeader, PageSkeleton, Toggle, usePageTitle } from '../components/ui';
+import VariantModal from '../components/VariantModal';
+import { Alert, Button, Field, PageHeader, PageSkeleton, Toggle, usePageTitle, cx } from '../components/ui';
 
 const EMPTY = {
   name: '', sku: '', category_id: '', subcategory_id: '', short_description: '', description: '', tags: '',
@@ -23,6 +24,8 @@ export default function ProductForm() {
   const [errors, setErrors] = useState({});
   const [message, setMessage] = useState('');
   const [busy, setBusy] = useState(false);
+  const [variantModalOpen, setVariantModalOpen] = useState(false);
+  const [editingVariantIndex, setEditingVariantIndex] = useState(null);
   usePageTitle(id ? 'Edit product' : 'Add product');
 
   useEffect(() => {
@@ -48,7 +51,7 @@ export default function ProductForm() {
           sku: p.sku || '', short_description: p.short_description || '', description: p.description || '', tags: p.tags || '',
           category_id: p.category_id || '', subcategory_id: p.subcategory_id || '', compare_price: p.compare_price ?? '',
           is_active: !!p.is_active, is_featured: !!p.is_featured, is_bestseller: !!p.is_bestseller, is_new: !!p.is_new,
-          variants: p.variants.map((v) => ({ ...v, compare_price: v.compare_price ?? '' })),
+          variants: p.variants.map((v) => ({ ...v, sku: v.sku ?? '', compare_price: v.compare_price ?? '' })),
         })
       )
       .catch((err) => { toast.error(err.message); navigate('/products'); });
@@ -64,6 +67,32 @@ export default function ProductForm() {
   const setRow = (list, index, key, value) => setForm((f) => ({ ...f, [list]: f[list].map((row, i) => (i === index ? { ...row, [key]: value } : row)) }));
   const addRow = (list, row) => setForm((f) => ({ ...f, [list]: [...f[list], row] }));
   const removeRow = (list, index) => setForm((f) => ({ ...f, [list]: f[list].filter((_, i) => i !== index) }));
+
+  const handleOpenAddVariant = () => {
+    setEditingVariantIndex(null);
+    setVariantModalOpen(true);
+  };
+
+  const handleOpenEditVariant = (index) => {
+    setEditingVariantIndex(index);
+    setVariantModalOpen(true);
+  };
+
+  const handleSaveVariant = (variantData) => {
+    if (editingVariantIndex != null) {
+      setForm((f) => ({
+        ...f,
+        variants: f.variants.map((v, i) => (i === editingVariantIndex ? { ...v, ...variantData } : v)),
+      }));
+      toast.success('Variant updated');
+    } else {
+      setForm((f) => ({
+        ...f,
+        variants: [...f.variants, variantData],
+      }));
+      toast.success('Variant added');
+    }
+  };
 
   const parents = categories.filter((c) => !c.parent_id);
   const subs = categories.filter((c) => String(c.parent_id) === String(form.category_id));
@@ -156,7 +185,9 @@ export default function ProductForm() {
           <section className="card p-5">
             <h2 className="card-title">Pricing &amp; stock</h2>
             {hasVariants ? (
-              <Alert tone="info" className="mt-3">This product has options, so price and stock are set per option below. The store shows the lowest option price.</Alert>
+              <Alert tone="info" className="mt-3">
+                This product has multiple variants. Price, stock, and shipping weight are managed per variant below. The store showcases the starting (lowest) variant price.
+              </Alert>
             ) : (
               <div className="mt-4 grid gap-4 sm:grid-cols-3">
                 <Field label="Selling price" required type="number" min="0" step="0.01" prefix="₹" value={form.price} onChange={set('price')} error={errors.price} />
@@ -166,28 +197,105 @@ export default function ProductForm() {
             )}
 
             <div className="mt-6 border-t border-line pt-5">
-              <div className="flex items-center justify-between gap-3">
+              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
                 <div>
-                  <h3 className="text-sm font-semibold">Options (sizes / weights)</h3>
-                  <p className="text-[13px] text-ink-500">e.g. 250g, 500g — each with its own price and stock.</p>
+                  <h3 className="text-sm font-semibold flex items-center gap-2">
+                    <Layers className="size-4 text-brand-700" />
+                    Options (sizes / weights)
+                  </h3>
+                  <p className="text-[13px] text-ink-500">
+                    {hasVariants
+                      ? `${form.variants.length} variant${form.variants.length > 1 ? 's' : ''} configured — each with its own size/weight, price, stock, and shipping details.`
+                      : 'Currently single default option. Click “Add variant” to configure multiple sizes or weights (e.g. 100g, 250g, 500g, 1Kg).'}
+                  </p>
                 </div>
-                <Button variant="outline" size="sm" onClick={() => addRow('variants', { label: '', price: '', compare_price: '', stock: '' })}><Plus className="size-4" aria-hidden /> Add option</Button>
+                <Button type="button" variant="outline" size="sm" onClick={handleOpenAddVariant}>
+                  <Plus className="size-4" aria-hidden /> Add variant
+                </Button>
               </div>
+
               {hasVariants && (
-                <div className="mt-4 space-y-2">
-                  <div className="hidden grid-cols-[1.4fr_1fr_1fr_0.8fr_36px] gap-2 text-xs font-semibold tracking-wider text-ink-500 uppercase sm:grid">
-                    <span>Option</span><span>Price (₹)</span><span>MRP (₹)</span><span>Stock</span><span />
+                <div className="mt-4 space-y-2.5">
+                  <div className="hidden grid-cols-[1.5fr_1.2fr_1fr_1fr_1.4fr_80px] gap-2 text-xs font-semibold tracking-wider text-ink-500 uppercase sm:grid px-3 py-1 bg-sand-50 rounded-lg">
+                    <span>Option</span>
+                    <span>SKU</span>
+                    <span>Price</span>
+                    <span>Stock</span>
+                    <span>Shipping Box</span>
+                    <span className="text-right">Actions</span>
                   </div>
+
                   {form.variants.map((v, i) => (
-                    <div key={v.id || `new-${i}`} className="grid grid-cols-2 gap-2 rounded-lg border border-line p-2 sm:grid-cols-[1.4fr_1fr_1fr_0.8fr_36px] sm:border-0 sm:p-0">
-                      <input className="input col-span-2 sm:col-span-1" aria-label={`Option ${i + 1} name`} placeholder="e.g. 250g" value={v.label} onChange={(e) => setRow('variants', i, 'label', e.target.value)} />
-                      <input className="input" type="number" min="0" step="0.01" aria-label={`Option ${i + 1} price`} placeholder="Price" value={v.price} onChange={(e) => setRow('variants', i, 'price', e.target.value)} />
-                      <input className="input" type="number" min="0" step="0.01" aria-label={`Option ${i + 1} MRP`} placeholder="MRP" value={v.compare_price} onChange={(e) => setRow('variants', i, 'compare_price', e.target.value)} />
-                      <input className="input" type="number" min="0" step="1" aria-label={`Option ${i + 1} stock`} placeholder="Stock" value={v.stock} onChange={(e) => setRow('variants', i, 'stock', e.target.value)} />
-                      <button type="button" onClick={() => removeRow('variants', i)} aria-label={`Remove option ${i + 1}`} className="icon-btn justify-self-end hover:bg-clay-50 hover:text-clay-600"><Trash2 className="size-4" aria-hidden /></button>
+                    <div
+                      key={v.id || `v-${i}`}
+                      className="flex flex-col sm:grid sm:grid-cols-[1.5fr_1.2fr_1fr_1fr_1.4fr_80px] items-start sm:items-center gap-2 rounded-xl border border-sand-200 bg-white p-3 shadow-xs hover:border-sand-300 transition-colors"
+                    >
+                      <div className="flex items-center gap-2">
+                        <span className="inline-flex items-center rounded-md bg-brand-50 px-2.5 py-1 text-xs font-bold text-brand-800 border border-brand-200">
+                          {v.label}
+                        </span>
+                      </div>
+                      <div className="text-xs text-ink-600 font-mono">
+                        {v.sku || <span className="text-ink-400 italic">None</span>}
+                      </div>
+                      <div className="text-xs font-medium text-ink-900">
+                        ₹{Number(v.price).toLocaleString('en-IN')}
+                        {v.compare_price && (
+                          <span className="ml-1 text-[11px] text-ink-400 line-through">
+                            ₹{Number(v.compare_price).toLocaleString('en-IN')}
+                          </span>
+                        )}
+                      </div>
+                      <div className="text-xs">
+                        <span
+                          className={cx(
+                            'inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-semibold',
+                            Number(v.stock) > 0 ? 'bg-emerald-50 text-emerald-700' : 'bg-clay-50 text-clay-700'
+                          )}
+                        >
+                          {v.stock} in stock
+                        </span>
+                      </div>
+                      <div className="text-xs text-ink-500">
+                        {v.package_weight ? `${v.package_weight} kg` : (form.package_weight ? `${form.package_weight} kg` : '0.25 kg')}
+                        {(v.package_length || form.package_length) && (
+                          <span className="text-[11px] text-ink-400 block">
+                            {v.package_length || form.package_length}×{v.package_breadth || form.package_breadth}×{v.package_height || form.package_height}cm
+                          </span>
+                        )}
+                      </div>
+                      <div className="flex items-center justify-end gap-1 w-full sm:w-auto">
+                        <button
+                          type="button"
+                          onClick={() => handleOpenEditVariant(i)}
+                          title="Edit variant"
+                          className="rounded-lg p-1.5 text-ink-500 hover:bg-sand-100 hover:text-ink-900 transition-colors"
+                        >
+                          <Edit2 className="size-4" />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => removeRow('variants', i)}
+                          title="Remove variant"
+                          className="rounded-lg p-1.5 text-clay-500 hover:bg-clay-50 hover:text-clay-700 transition-colors"
+                        >
+                          <Trash2 className="size-4" />
+                        </button>
+                      </div>
                     </div>
                   ))}
-                  {Object.keys(errors).some((k) => k.startsWith('variants') && errors[k]) && <p role="alert" className="text-[13px] text-clay-600">{errors.variants || 'Each option needs a name and a price.'}</p>}
+
+                  <div className="pt-2">
+                    <Button type="button" variant="outline" size="sm" onClick={handleOpenAddVariant}>
+                      <Plus className="size-4" aria-hidden /> Add another variant
+                    </Button>
+                  </div>
+
+                  {errors.variants && (
+                    <p role="alert" className="text-[13px] text-clay-600 font-medium">
+                      {errors.variants}
+                    </p>
+                  )}
                 </div>
               )}
             </div>
@@ -330,6 +438,25 @@ export default function ProductForm() {
           </section>
         </div>
       </div>
+
+      <VariantModal
+        open={variantModalOpen}
+        onClose={() => setVariantModalOpen(false)}
+        onSave={handleSaveVariant}
+        initialVariant={editingVariantIndex != null ? form.variants[editingVariantIndex] : null}
+        productDefaults={{
+          name: form.name,
+          sku: form.sku,
+          price: form.price,
+          compare_price: form.compare_price,
+          stock: form.stock,
+          package_length: form.package_length,
+          package_breadth: form.package_breadth,
+          package_height: form.package_height,
+          package_weight: form.package_weight,
+        }}
+        existingVariants={form.variants}
+      />
     </form>
   );
 }

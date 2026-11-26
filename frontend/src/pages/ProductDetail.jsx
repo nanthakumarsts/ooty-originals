@@ -9,15 +9,14 @@ import { useShop } from '../context/ShopContext';
 import { ProductGrid } from '../components/product/ProductCard';
 import { Badge, Breadcrumbs, Button, EmptyState, Price, QuantityStepper, cx, usePageTitle } from '../components/ui';
 
-/** Splits multi-line text from Site settings into separate points. */
-const lines = (text) => String(text || '').split('\n').map((l) => l.trim()).filter(Boolean);
+import ProductReviews from '../components/product/ProductReviews';
 
 function Gallery({ images, name }) {
   const [index, setIndex] = useState(0);
   useEffect(() => setIndex(0), [images]);
   const list = images.length ? images : [null];
   return (
-    <div className="flex flex-col-reverse gap-3 sm:flex-row lg:sticky lg:top-28">
+    <div className="flex self-start flex-col-reverse gap-3 sm:flex-row sm:items-start lg:sticky lg:top-28">
       {list.length > 1 && (
         <div className="flex gap-3 overflow-x-auto scrollbar-none sm:flex-col sm:overflow-visible" role="tablist" aria-label="Product images">
           {list.map((src, i) => (
@@ -36,7 +35,7 @@ function Gallery({ images, name }) {
         </div>
       )}
       <div className="flex-1 overflow-hidden rounded-3xl bg-sand-100">
-        <img key={list[index]} src={img(list[index])} alt={name} width="960" height="720" fetchPriority="high" className="aspect-square sm:aspect-[4/3] w-full animate-fade-in object-cover" />
+        <img key={list[index]} src={img(list[index])} alt={name} width="960" height="720" fetchPriority="high" className="block aspect-square sm:aspect-[4/3] lg:aspect-square w-full animate-fade-in object-cover" />
       </div>
     </div>
   );
@@ -141,7 +140,7 @@ export default function ProductDetail() {
   const tabs = [
     product.description && { id: 'description', label: 'Description' },
     product.specifications.length > 0 && { id: 'specs', label: 'Specifications' },
-    { id: 'shipping', label: 'Delivery & returns' },
+    { id: 'reviews', label: 'Reviews' },
   ].filter(Boolean);
   const activeTab = tabs.some((t) => t.id === tab) ? tab : tabs[0].id;
 
@@ -272,15 +271,7 @@ export default function ProductDetail() {
               ))}
             </dl>
           )}
-          {activeTab === 'shipping' && (
-            <div className="rich">
-              <h3>Delivery</h3>
-              <ul>{lines(settings.delivery_info).map((line) => <li key={line}>{line}</li>)}</ul>
-              <h3>Returns</h3>
-              <ul>{lines(settings.returns_info).map((line) => <li key={line}>{line}</li>)}</ul>
-              <p>Read the full <Link to="/refund-policy">refund &amp; returns policy</Link>.</p>
-            </div>
-          )}
+          {activeTab === 'reviews' && <ProductReviews key={product.id} productId={product.id} />}
         </div>
       </section>
 

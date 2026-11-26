@@ -77,21 +77,21 @@ export default function Footer() {
             <p className="mb-3 text-sm font-semibold tracking-wider text-white/55 uppercase">Shop</p>
             <ul>
               {categories.slice(0, 8).map((c) => (
-                <li key={c.id}><Link to={`/shop?category=${c.slug}`} className={linkClass}>{c.name}</Link></li>
+                <li key={c.id}><Link to={`/shop?category=${c.slug}`} onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })} className={linkClass}>{c.name}</Link></li>
               ))}
-              <li><Link to="/shop" className={linkClass}>All products</Link></li>
+              <li><Link to="/shop" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })} className={linkClass}>All products</Link></li>
             </ul>
           </nav>
           <nav aria-label="Help">
             <p className="mb-3 text-sm font-semibold tracking-wider text-white/55 uppercase">Help</p>
             <ul>
-              <li><Link to="/about" className={linkClass}>Our story</Link></li>
-              <li><Link to="/contact" className={linkClass}>Contact us</Link></li>
+              <li><Link to="/about" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })} className={linkClass}>Our story</Link></li>
+              <li><Link to="/contact" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })} className={linkClass}>Contact us</Link></li>
               <li><Link to="/contact#faq" className={linkClass}>FAQs</Link></li>
-              <li><Link to="/account/orders" className={linkClass}>Track my order</Link></li>
-              <li><Link to="/refund-policy" className={linkClass}>Refunds &amp; returns</Link></li>
-              <li><Link to="/privacy-policy" className={linkClass}>Privacy policy</Link></li>
-              <li><Link to="/terms-and-conditions" className={linkClass}>Terms &amp; conditions</Link></li>
+              <li><Link to="/account/orders" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })} className={linkClass}>Track my order</Link></li>
+              <li><Link to="/refund-policy" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })} className={linkClass}>Refunds &amp; returns</Link></li>
+              <li><Link to="/privacy-policy" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })} className={linkClass}>Privacy policy</Link></li>
+              <li><Link to="/terms-and-conditions" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })} className={linkClass}>Terms &amp; conditions</Link></li>
             </ul>
           </nav>
           <div className="col-span-2 sm:col-span-1">
@@ -129,7 +129,7 @@ export default function Footer() {
               href="https://saitechnosolutions.com"
               target="_blank"
               rel="noopener noreferrer"
-              className="font-medium text-white/80 underline underline-offset-4 transition-colors hover:text-white"
+              className="font-medium text-white/80 transition-colors hover:text-white"
             >
               Sai Techno Solutions (P) Ltd
             </a>
